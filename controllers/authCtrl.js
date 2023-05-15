@@ -32,7 +32,7 @@ const dbCtrl = {
                 tokenExpiresIn: new Date().getTime(),
               },
               ...user,
-            }
+            },
           });
         } else {
           const code = 401;
@@ -49,29 +49,29 @@ const dbCtrl = {
   // signIn
   accessToken: async (req, res) => {
     const token = req.headers.authorization.split(' ')[1];
+    console.log('token -----------------');
+    console.log(token);
+    console.log('token -----------------');
     try {
       const decodedToken = jwt.verify(token, 'my_secret_key');
       delete decodedToken.iat;
       delete decodedToken.exp;
-      const refreshToken = jwt.sign(
-        decodedToken, 'my_secret_key', { expiresIn: '1m' }
-      );
+      const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '1m' });
       res.cookie('token', refreshToken, { httpOnly: true });
       res.send({
         code: 200,
-        response:
-        {
+        response: {
           ...{
             accessToken: refreshToken,
             tokenExpiresIn: new Date().getTime(),
           },
           ...decodedToken,
-        }
+        },
       });
     } catch (err) {
       return res.status(401).json({ error: 'Invalid token' });
     }
-  }
+  },
   // accessToken
 };
 
