@@ -22,7 +22,7 @@ const dbCtrl = {
             roleId: `${rows[0].roldId}`,
             role: 'ROLE_ADMIN',
           };
-          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '1m' });
+          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '30m' });
           res.cookie('token', token, { httpOnly: true });
           res.send({
             code: 200,
@@ -49,14 +49,11 @@ const dbCtrl = {
   // signIn
   accessToken: async (req, res) => {
     const token = req.headers.authorization.split(' ')[1];
-    console.log('token -----------------');
-    console.log(token);
-    console.log('token -----------------');
     try {
       const decodedToken = jwt.verify(token, 'my_secret_key');
       delete decodedToken.iat;
       delete decodedToken.exp;
-      const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '1m' });
+      const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '30m' });
       res.cookie('token', refreshToken, { httpOnly: true });
       res.send({
         code: 200,

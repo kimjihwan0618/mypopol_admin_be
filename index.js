@@ -23,7 +23,7 @@ app.use(cors(corsOptions));
 
 const port = 3000;
 app.listen(port, () => {
-  console.log('My Popol API 서버가 시작되었습니다 (db Connect).', port);
+  console.log('My Popol API 서버가 시작되었습니다.', port);
 });
 
 // api ctrl
