@@ -1,28 +1,21 @@
 const connection = require('../dbConfig');
+const query = require('../query/auth');
 const jwt = require('jsonwebtoken');
 
 const dbCtrl = {
   signIn: async (req, res) => {
     const clientDomain = req.headers.origin;
     console.log('Client domain:', clientDomain);
-    const { userKey, userId, password } = req.body;
-    connection.query(
-      `
-      SELECT * FROM users
-      WHERE 1=1
-      AND userKey = '${userKey}'
-      AND userId = '${userId}'
-      AND password = '${password}'
-    `,
+    connection.query(query.getUser(req.body),
       (error, rows) => {
         if (error) throw error;
         if (rows.length === 1) {
           const user = {
             key: `${rows[0].userKey}`,
             userId: `${rows[0].userId}`,
-            username: `${rows[0].name}`,
-            roleId: `${rows[0].roldId}`,
-            role: 'ROLE_ADMIN',
+            username: `${rows[0].userName}`,
+            roleId: `${rows[0].roleId}`,
+            role: `${rows[0].roleName}`,
           };
           const token = jwt.sign(user, 'my_secret_key', { expiresIn: '30m' });
           res.cookie('token', token, { httpOnly: true });

@@ -29,3 +29,4 @@ app.listen(port, () => {
 // api ctrl
 app.use('/email', require('./routes/emailRouter'));
 app.use('/auth', require('./routes/authRouter'));
+app.use('/common', require('./routes/commonRouter'));
