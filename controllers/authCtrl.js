@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const dbCtrl = {
   signIn: async (req, res) => {
+    const clientDomain = req.headers.origin;
+    console.log('Client domain:', clientDomain);
     const { userKey, userId, password } = req.body;
     connection.query(
       `
