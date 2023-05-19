@@ -8,35 +8,39 @@ const dbCtrl = {
     console.log('Client domain:', clientDomain);
     connection.query(query.getUser(req.body),
       (error, rows) => {
-        if (error) throw error;
-        if (rows.length === 1) {
-          const user = {
-            key: `${rows[0].userKey}`,
-            userId: `${rows[0].userId}`,
-            username: `${rows[0].userName}`,
-            roleId: `${rows[0].roleId}`,
-            role: `${rows[0].roleName}`,
-          };
-          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '30m' });
-          res.cookie('token', token, { httpOnly: true });
-          res.send({
-            code: 200,
-            response: {
-              ...{
-                accessToken: token,
-                tokenExpiresIn: new Date().getTime(),
+        // if (error) throw error;
+        try {
+          if (rows.length === 1) {
+            const user = {
+              key: `${rows[0].userKey}`,
+              userId: `${rows[0].userId}`,
+              username: `${rows[0].userName}`,
+              roleId: `${rows[0].roleId}`,
+              role: `${rows[0].roleName}`,
+            };
+            const token = jwt.sign(user, 'my_secret_key', { expiresIn: '30m' });
+            res.cookie('token', token, { httpOnly: true });
+            res.send({
+              code: 200,
+              response: {
+                ...{
+                  accessToken: token,
+                  tokenExpiresIn: new Date().getTime(),
+                },
+                ...user,
               },
-              ...user,
-            },
-          });
-        } else {
-          const code = 401;
-          res.status(code).json({
-            code: code,
-            status: 'Unauthorized',
-            message: '일치하는 유저 정보가 없습니다.',
-            timestamp: new Date(),
-          });
+            });
+          } else {
+            const code = 401;
+            res.status(code).json({
+              code: code,
+              status: 'Unauthorized',
+              message: '일치하는 유저 정보가 없습니다.',
+              timestamp: new Date(),
+            });
+          }
+        } catch (err) {
+          return res.status(401).json({ error: '로그인 요청 에러' });
         }
       }
     );
