@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs');
-const filePath = "./mailConfig.json"
-let mailConfig = "";
+const filePath = './mailConfig.json';
+let mailConfig = '';
 fs.readFile(filePath, 'utf8', (err, data) => {
   if (err) throw err;
   mailConfig = JSON.parse(data);
@@ -9,7 +9,7 @@ fs.readFile(filePath, 'utf8', (err, data) => {
 
 const emailCtrl = {
   sendMail: (req, res) => {
-    if (req.method === 'POST' && req.url === '/send') {
+    try {
       const { from, to, subject, body, pw } = req.body;
       console.log(`Mail Send -> From : ${from}, To : ${to}`);
       if (pw === 'WlGhks010!@#') {
@@ -37,9 +37,14 @@ const emailCtrl = {
         });
         res.end('/email/send Suc');
       }
-    } else {
-      res.statusCode = 404;
-      res.end('Not found');
+    } catch (error) {
+      console.error('sendMail error : ', error);
+      res.status(500).json({
+        code: 500,
+        status: 'Internal Server Error',
+        message: 'sendMail error : 내부 서버 오류가 발생했습니다.',
+        timestamp: new Date(),
+      });
     }
   },
 };

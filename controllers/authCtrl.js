@@ -4,11 +4,10 @@ const jwt = require('jsonwebtoken');
 
 const dbCtrl = {
   signIn: async (req, res) => {
-    const clientDomain = req.headers.origin;
-    console.log('Client domain:', clientDomain);
-    connection.query(query.getUser(req.body), (error, rows) => {
-      // if (error) throw error;
-      try {
+    try {
+      const clientDomain = req.headers.origin;
+      console.log('Client domain:', clientDomain);
+      connection.query(query.getUser(req.body), (error, rows) => {
         if (rows.length === 1) {
           const user = {
             key: `${rows[0].userKey}`,
@@ -38,15 +37,21 @@ const dbCtrl = {
             timestamp: new Date(),
           });
         }
-      } catch (err) {
-        return res.status(401).json({ error });
-      }
-    });
+      });
+    } catch (err) {
+      console.error('signIn error : ', error);
+      res.status(500).json({
+        code: 500,
+        status: 'Internal Server Error',
+        message: 'signIn error : 내부 서버 오류가 발생했습니다.',
+        timestamp: new Date(),
+      });
+    }
   },
   // signIn
   accessToken: async (req, res) => {
-    const token = req.headers.authorization.split(' ')[1];
     try {
+      const token = req.headers.authorization.split(' ')[1];
       const decodedToken = jwt.verify(token, 'my_secret_key');
       delete decodedToken.iat;
       delete decodedToken.exp;
@@ -63,7 +68,13 @@ const dbCtrl = {
         },
       });
     } catch (err) {
-      return res.status(401).json({ error: 'Invalid token' });
+      console.error('accessToken error : ', err);
+      res.status(401).json({
+        code: 401,
+        status: 'Internal Server Error',
+        message: 'Invalid token',
+        timestamp: new Date(),
+      });
     }
   },
   // accessToken
