@@ -9,6 +9,8 @@ const corsOptions = {
     'https://caribo.me',
     'http://admin.mypopol.com',
     'https://admin.mypopol.com',
+    'http://site.mypopol.com',
+    'https://site.mypopol.com',
     'https://kimjihodo.synology.me',
     'http://localhost:3001',
     'http://127.0.0.1:5500',
@@ -19,7 +21,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors(corsOptions));
-// app.use(cors());
 
 const port = 3000;
 app.listen(port, () => {
@@ -30,3 +31,4 @@ app.listen(port, () => {
 app.use('/email', require('./routes/emailRouter'));
 app.use('/auth', require('./routes/authRouter'));
 app.use('/common', require('./routes/commonRouter'));
+app.use('/site', require('./routes/siteRouter'));
