@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const dbCtrl = {
   signIn: async (req, res) => {
+    console.log('Client ip:', req.ip);
     try {
       const clientDomain = req.headers.origin;
       console.log('Client domain:', clientDomain);
