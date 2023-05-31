@@ -13,6 +13,13 @@ const site = {
     AND A.ptId = '${param.ptId}'
   `;
   },
+  getWorks: (popolSeq) => {
+    return `
+    SELECT * FROM works
+    WHERE 1=1
+    AND popolSeq = ${popolSeq}
+    `
+  }
 };
 
 module.exports = site;
