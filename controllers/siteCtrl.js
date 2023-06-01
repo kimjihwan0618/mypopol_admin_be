@@ -7,8 +7,6 @@ const siteCtrl = {
       connection.query(query.getPopolInfo(req.body), (error, rows1) => {
         if (rows1.length === 1) {
           connection.query(query.getWorks(rows1[0].popolSeq), (error, rows2) => {
-            console.log(rows1[0])
-            console.log(rows2)
             res.send({
               code: 200,
               response: {
