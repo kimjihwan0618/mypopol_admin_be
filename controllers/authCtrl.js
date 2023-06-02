@@ -11,7 +11,7 @@ const dbCtrl = {
       connection.query(query.getUser(req.body), (error, rows) => {
         if (rows.length === 1) {
           const user = {
-            key: `${rows[0].userKey}`,
+            userKey: `${rows[0].userKey}`,
             userId: `${rows[0].userId}`,
             username: `${rows[0].userName}`,
             roleId: `${rows[0].roleId}`,
