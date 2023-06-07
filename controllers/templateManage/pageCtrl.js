@@ -1,16 +1,21 @@
-const connection = require('../../dbConfig');
+const db = require('../../dbConfig');
 const query = require('../../query/templateManage');
 
 const siteCtrl = {
   getPageTemList: async (req, res) => {
     try {
+      const connection = db();
       connection.query(query.getPageTemList(req.body), (error, rows) => {
+        if (error) {
+          throw error;
+        }
         res.send({
           response: {
             code: 200,
             response: rows,
           },
         });
+        connection.end();
       });
     } catch (error) {
       console.error('getPageTemList error :', error);
@@ -24,7 +29,7 @@ const siteCtrl = {
   },
   updatePageTem: async (req, res) => {
     try {
-      console.log("--------------------------------------req")
+      console.log('--------------------------------------req');
       console.log(req.body.fields); // fields 데이터 가져오기
       console.log(req.files.files); // files 데이터 가져오기
       res.send({
@@ -33,7 +38,7 @@ const siteCtrl = {
           response: req.body,
         },
       });
-      console.log("--------------------------------------req")
+      console.log('--------------------------------------req');
     } catch (error) {
       console.error('updatePageTem error :', error);
       res.status(500).json({
@@ -43,6 +48,6 @@ const siteCtrl = {
         timestamp: new Date(),
       });
     }
-  }
+  },
 };
 module.exports = siteCtrl;

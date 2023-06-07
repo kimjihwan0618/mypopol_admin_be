@@ -1,14 +1,15 @@
-const connection = require('../dbConfig');
+const db = require('../dbConfig');
 const query = require('../query/auth');
 const jwt = require('jsonwebtoken');
 
 const dbCtrl = {
   signIn: async (req, res) => {
-    console.log('Client ip:', req.ip);
     try {
-      const clientDomain = req.headers.origin;
-      console.log('Client domain:', clientDomain);
+      const connection = db();
       connection.query(query.getUser(req.body), (error, rows) => {
+        if (error) {
+          throw error;
+        }
         if (rows.length === 1) {
           const user = {
             userKey: `${rows[0].userKey}`,
@@ -38,9 +39,10 @@ const dbCtrl = {
             timestamp: new Date(),
           });
         }
+        connection.end();
       });
     } catch (err) {
-      console.error('signIn error : ', error);
+      console.error('signIn error : ', err);
       res.status(500).json({
         code: 500,
         status: 'Internal Server Error',

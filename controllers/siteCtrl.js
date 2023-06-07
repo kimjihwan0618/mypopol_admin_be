@@ -1,10 +1,14 @@
-const connection = require('../dbConfig');
+const db = require('../dbConfig');
 const query = require('../query/site');
 
 const siteCtrl = {
   getPopolInfo: async (req, res) => {
     try {
+      const connection = db();
       connection.query(query.getPopolInfo(req.body), (error, rows1) => {
+        if (error) {
+          throw error;
+        }
         if (rows1.length === 1) {
           connection.query(query.getWorks(rows1[0].popolSeq), (error, rows2) => {
             res.send({
@@ -14,8 +18,9 @@ const siteCtrl = {
                 worksInfo: rows2,
               },
             });
-          })
+          });
         }
+        connection.end();
       });
     } catch (error) {
       console.error('getPopolInfo error :', error);

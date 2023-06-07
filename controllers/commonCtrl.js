@@ -10,9 +10,10 @@ const commonCtrl = {
     try {
       const queryObj = url.parse(req.url, true).query;
       const roleId = queryObj.roleId;
-      db.query(query.getMenus(roleId), (error, rows) => {
+      const connection = db();
+      connection.query(query.getMenus(roleId), (error, rows) => {
         if (error) {
-          throw error; // 예외 발생 시, 예외를 throw하여 catch 블록으로 이동
+          throw error;
         }
         if (rows.length === 1) {
           res.send({
@@ -28,6 +29,7 @@ const commonCtrl = {
             timestamp: new Date(),
           });
         }
+        connection.end();
       });
     } catch (error) {
       console.error('getMenus error :', error);
