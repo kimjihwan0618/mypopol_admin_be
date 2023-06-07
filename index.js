@@ -32,4 +32,4 @@ app.use('/email', require('./routes/emailRouter'));
 app.use('/auth', require('./routes/authRouter'));
 app.use('/common', require('./routes/commonRouter'));
 app.use('/site', require('./routes/siteRouter'));
-app.use('/templatemanage', require('./routes/templatemanageRouter'));
+app.use('/templateManage', require('./routes/templatemanageRouter'));
