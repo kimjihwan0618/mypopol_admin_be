@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
+const multer = require('multer');
 
 const corsOptions = {
   origin: [
@@ -16,11 +17,13 @@ const corsOptions = {
     'http://127.0.0.1:5500',
   ],
 };
+const upload = multer().any();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors(corsOptions));
+app.use(upload);
 
 const port = 3000;
 app.listen(port, () => {
