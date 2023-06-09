@@ -48,34 +48,56 @@ const siteCtrl = {
       const oldProfilePath = `${sourceDir}/${reqJson.profileOld}`;
       const directoryList = await sftp.list(sourceDir);
       // 파일 조회
-      const thumbnailExists = directoryList.some((file) => file.name === `${reqJson.thumbnailOld}`);
-      const profileExists = directoryList.some((file) => file.name === `${reqJson.profileOld}`);
+      const oldThumbnailExists = directoryList.some((file) => file.name === `${reqJson.thumbnailOld}`);
+      const oldProfileExists = directoryList.some((file) => file.name === `${reqJson.profileOld}`);
 
+      console.log("--------- null 일경우 ? thumbnailImgPath")
+      console.log(thumbnailImgPath)
       if (thumbnailImgPath !== '') {
-        // 썸네일 파일 조회
-        if (thumbnailExists) {
-          // 썸네일 파일 삭제
+        // 썸네일 파일 삭제 & 추가
+        if (oldThumbnailExists) {
+          if (reqJson.thumbnailOld !== thumbnailImg.originalname) {
+            console.log(reqJson.thumbnailOld)
+            console.log(thumbnailImg.originalname)
+            await sftp.delete(oldThumbnailPath);
+            console.log(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
+            await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
+            console.log(`새 썸네일 이미지 ${reqJson.thumbnailOld} 추가 11`);
+          }
+        } else {
+          console.log(`옛날 썸네일 이미지 존재하지 않음`);
+          await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
+          console.log(`새 썸네일 이미지 ${thumbnailImg.originalname} 추가 22`);
+        }
+      } else {
+        if (oldThumbnailExists) {
+          console.log(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
           await sftp.delete(oldThumbnailPath);
-          console.log(`썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
-        } else {
-          console.log(`썸네일 이미지 존재하지 않음`);
         }
-        // 이미지 파일 추가
-        await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
-        // 이미지 파일 추가
       }
+      console.log("--------- null 일경우 ? profileImgPath")
+      console.log(profileImgPath)
       if (profileImgPath !== '') {
-        // 프로필 파일 조회
-        if (profileExists) {
-          // 프로필 파일 삭제
-          await sftp.delete(oldProfilePath);
-          console.log(`프로필 이미지 ${reqJson.profileOld} 삭제`);
+        // 프로필 파일 삭제 & 추가
+        if (oldProfileExists) {
+          if (reqJson.profileOld !== profileImg.originalname) {
+            console.log(reqJson.profileOld)
+            console.log(profileImg.originalname)
+            await sftp.delete(oldProfilePath);
+            console.log(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제 11`);
+            await sftp.put(profileImg.buffer, profileImgPath);
+            console.log(`새 프로필 이미지 ${reqJson.profileOld} 추가 11`);
+          }
         } else {
-          console.log(`프로필 이미지 존재하지 않음`);
+          console.log(`옛날 프로필 이미지 존재하지 않음`);
+          await sftp.put(profileImg.buffer, profileImgPath);
+          console.log(`새 프로필 이미지 ${profileImg.originalname} 추가 22`);
         }
-        // 이미지 파일 추가
-        await sftp.put(profileImg.buffer, profileImgPath);
-        // 이미지 파일 추가
+      } else {
+        if (oldProfileExists) {
+          console.log(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제`);
+          await sftp.delete(oldProfilePath);
+        }
       }
       sftp.end();
       const connection = db();
