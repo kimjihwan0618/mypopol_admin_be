@@ -18,6 +18,7 @@ const query = {
       thumbnail = '${param.thumbnail}',
       phone = '${param.phone}',
       sns = '${param.snsList}',
+      icon = '${param.icon}',
       renewalDate = renewalDate,
       lastUpdated = CURRENT_TIMESTAMP
       WHERE 1=1
