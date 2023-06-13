@@ -101,6 +101,7 @@ const siteCtrl = {
       }
       sftp.end();
       const connection = db();
+      console.log(reqJson)
       connection.query(query.updatePageTem(reqJson), (error, rows) => {
         if (error) {
           throw error;
