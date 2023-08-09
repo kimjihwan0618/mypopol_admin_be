@@ -11,8 +11,9 @@ const siteCtrl = {
         }
         if (rows1.length === 1) {
           connection.query(query.getWorks(rows1[0].popolSeq), (error, rows2) => {
-            res.status(200).send({
+            res.send({
               response: {
+                code: 200,
                 popolInfo: rows1[0],
                 worksInfo: rows2,
               },
