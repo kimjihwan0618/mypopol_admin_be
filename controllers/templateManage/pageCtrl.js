@@ -133,5 +133,27 @@ const siteCtrl = {
       });
     }
   },
+  addOrUpdateWork: async (req, res) => {
+    try {
+      const reqJson = JSON.parse(req.body.fields);
+      const files = req.files;
+      const titleImg = files.find((file) => file.fieldname === 'titleImg');
+      const posterImg = files.find((file) => file.fieldname === 'posterImg');
+      if (reqJson.state === "추가") {
+
+      } else if (reqJson.state === "수정") {
+
+      }
+
+    } catch (error) {
+      console.error('addOrUpdateWork error :', error);
+      res.status(500).json({
+        code: 500,
+        status: 'Internal Server Error',
+        message: 'addOrUpdateWork error : 내부 서버 오류가 발생했습니다.',
+        timestamp: new Date(),
+      });
+    }
+  },
 };
 module.exports = siteCtrl;
