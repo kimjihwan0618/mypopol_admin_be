@@ -18,7 +18,8 @@ const dbCtrl = {
             roleId: `${rows[0].roleId}`,
             role: `${rows[0].roleName}`,
           };
-          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '5m' });
+          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '120m' });
+          // 개발 중에만 jwt 유효기간 늘려놓음
           res.cookie('token', token, { httpOnly: true });
           res.send({
             code: 200,
@@ -58,7 +59,8 @@ const dbCtrl = {
       const decodedToken = jwt.verify(token, 'my_secret_key');
       delete decodedToken.iat;
       delete decodedToken.exp;
-      const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '5m' });
+      const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '120m' });
+      // 개발 중에만 jwt 유효기간 늘려놓음
       res.cookie('token', refreshToken, { httpOnly: true });
       res.send({
         code: 200,

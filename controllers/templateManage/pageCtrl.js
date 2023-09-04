@@ -101,17 +101,10 @@ const siteCtrl = {
       }
       sftp.end();
       const connection = db();
-      console.log(reqJson)
       connection.query(query.updatePageTem(reqJson), (error, rows) => {
         if (error) {
           throw error;
         }
-        // res.send({
-        //   response: {
-        //     code: 200,
-        //     response: rows,
-        //   },
-        // });
         connection.end();
       });
       res.send({
@@ -139,8 +132,40 @@ const siteCtrl = {
       const files = req.files;
       const titleImg = files.find((file) => file.fieldname === 'titleImg');
       const posterImg = files.find((file) => file.fieldname === 'posterImg');
+      const sourceDir = `/web/site/${reqJson.ptId}/${reqJson.userId}/img/`;
+      reqJson.logo = titleImg.originalname;
+      reqJson.poster = posterImg.originalname;
       if (reqJson.state === "추가") {
-
+        reqJson.src = String(reqJson.workId) + "_" + String(new Date().getTime());
+        await sftp.connect(sftpConfig);
+        await sftp.mkdir(sourceDir + reqJson.src, true);
+        await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + reqJson.logo);
+        await sftp.put(posterImg.buffer, sourceDir + reqJson.src + "/" + reqJson.poster);
+        sftp.end();
+        const connection = db();
+        connection.query(query.seletWorkOrder(reqJson), (error, rows) => {
+          if (error) {
+            throw error;
+          }
+          reqJson.order = rows[0]["max_order"]
+          connection.query(query.addWork(reqJson), (error, rows) => {
+            if (error) {
+              throw error;
+            }
+            // 마지막으로 추가된 workSeq 아이디 json 값에 추가후 리턴해서 작업이어가기 ~
+            console.log(rows.insertId);
+            connection.end();
+            reqJson.workSeq = rows.insertId;
+            res.send({
+              response: {
+                code: 200,
+                response: {
+                  reqJson
+                },
+              },
+            });
+          });
+        });
       } else if (reqJson.state === "수정") {
 
       }
