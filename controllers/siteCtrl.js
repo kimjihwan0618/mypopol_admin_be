@@ -1,11 +1,12 @@
 const db = require('../dbConfig');
 const query = require('../query/site');
+const queryParse = require('../utills/queryParse');
 
 const siteCtrl = {
   getPopolInfo: async (req, res) => {
     try {
       const connection = db();
-      connection.query(query.getPopolInfo(req.body), (error, rows1) => {
+      connection.query(query.getPopolInfo(queryParse.singleQuiteParse(req.body)), (error, rows1) => {
         if (error) {
           throw error;
         }

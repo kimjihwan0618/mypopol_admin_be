@@ -7,5 +7,6 @@ router.route('/page/update').post(pageTemManageCtrl.updatePageTem);
 
 // work
 router.route('/page/work/addOrUpdate').post(pageTemManageCtrl.addOrUpdateWork);
+router.route('/page/work/delete').post(pageTemManageCtrl.deleteWork);
 
 module.exports = router;

@@ -1,12 +1,13 @@
 const db = require('../dbConfig');
 const query = require('../query/auth');
 const jwt = require('jsonwebtoken');
+const queryParse = require('../utills/queryParse');
 
 const dbCtrl = {
   signIn: async (req, res) => {
     try {
       const connection = db();
-      connection.query(query.getUser(req.body), (error, rows) => {
+      connection.query(query.getUser(queryParse.singleQuiteParse(req.body)), (error, rows) => {
         if (error) {
           throw error;
         }

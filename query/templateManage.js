@@ -40,6 +40,60 @@ const query = {
     AND workId = ${param.workId};
     `;
   },
+  seletLastWorkSeq: () => {
+    return `
+    SELECT MAX(workSeq) AS last_work_seq
+    FROM works;
+    `;
+  },
+  seletWorkOrder: (param) => {
+    return `
+    SELECT MAX(${"`order`"}) + 1 AS max_order FROM works
+    WHERE popolSeq = ${param.popolSeq}
+    AND workId = ${param.workId};
+    `;
+  },
+  updateWork: (param) => {
+    return `  
+      UPDATE works
+      SET title = '${param.title}',
+      subTitle = '${param.subTitle}',
+      poster = '${param.poster}',
+      logo = '${param.logo}',
+      summary = '${param.summary}',
+      etc = '${param.siteList}'
+      WHERE 1=1
+      AND popolSeq = ${param.popolSeq}
+      AND workSeq = ${param.workSeq}
+    `;
+  },
+  updateWorkSeq: (param) => {
+    return `  
+      UPDATE works SET workSeq = workSeq - 1 
+      WHERE workSeq <= ${param.lastWorkSeq}
+      AND workSeq > ${param.workSeq};
+    `;
+  },
+  updateWorkOrder: (param) => {
+    return `  
+      UPDATE works SET ${"`order`"} = ${"`order`"} - 1 
+      WHERE popolSeq = ${param.popolSeq}
+      AND ${"`order`"} > ${param.order};
+    `;
+  },
+  seqWorkSeq: (param) => {
+    return `  
+      ALTER TABLE works AUTO_INCREMENT = ${param.lastWorkSeq};
+    `;
+  },
+  deleteWork: (param) => {
+    return `
+      DELETE FROM works
+      WHERE 1=1
+      AND workSeq = ${param.workSeq}
+      AND src = '${param.src}'
+    `
+  }
 };
 
 module.exports = query;
