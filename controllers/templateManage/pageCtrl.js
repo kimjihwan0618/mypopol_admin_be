@@ -91,11 +91,11 @@ const siteCtrl = {
       const profileImg = files.find((file) => file.fieldname === 'profileImg');
       const sourceDir = `/web/site/${reqJson.ptId}/${reqJson.userId}/img`;
       const thumbnailImgPath =
-        thumbnailImg && thumbnailImg.originalname
-          ? `${sourceDir}/${thumbnailImg.originalname}`
+        thumbnailImg && decodeURIComponent(thumbnailImg.originalname)
+          ? `${sourceDir}/${decodeURIComponent(thumbnailImg.originalname)}`
           : '';
       const profileImgPath =
-        profileImg && profileImg.originalname ? `${sourceDir}/${profileImg.originalname}` : '';
+        profileImg && decodeURIComponent(profileImg.originalname) ? `${sourceDir}/${decodeURIComponent(profileImg.originalname)}` : '';
       await sftp.connect(sftpConfig);
       const oldThumbnailPath = `${sourceDir}/${reqJson.thumbnailOld}`;
       const oldProfilePath = `${sourceDir}/${reqJson.profileOld}`;
@@ -104,51 +104,45 @@ const siteCtrl = {
       const oldThumbnailExists = directoryList.some((file) => file.name === `${reqJson.thumbnailOld}`);
       const oldProfileExists = directoryList.some((file) => file.name === `${reqJson.profileOld}`);
 
-      console.log("--------- null 일경우 ? thumbnailImgPath")
-      console.log(thumbnailImgPath)
       if (thumbnailImgPath !== '') {
         // 썸네일 파일 삭제 & 추가
         if (oldThumbnailExists) {
-          if (reqJson.thumbnailOld !== thumbnailImg.originalname) {
-            console.log(reqJson.thumbnailOld)
-            console.log(thumbnailImg.originalname)
+          if (reqJson.thumbnailOld !== decodeURIComponent(thumbnailImg.originalname)) {
             await sftp.delete(oldThumbnailPath);
-            console.log(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
+            // console.log(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
             await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
-            console.log(`새 썸네일 이미지 ${reqJson.thumbnailOld} 추가 11`);
+            // console.log(`새 썸네일 이미지 ${reqJson.thumbnailOld} 추가 11`);
           }
         } else {
-          console.log(`옛날 썸네일 이미지 존재하지 않음`);
+          // console.log(`옛날 썸네일 이미지 존재하지 않음`);
           await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
-          console.log(`새 썸네일 이미지 ${thumbnailImg.originalname} 추가 22`);
+          // console.log(`새 썸네일 이미지 ${decodeURIComponent(thumbnailImg.originalname)} 추가 22`);
         }
       } else {
         if (oldThumbnailExists) {
-          console.log(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
+          // console.log(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
           await sftp.delete(oldThumbnailPath);
         }
       }
-      console.log("--------- null 일경우 ? profileImgPath")
-      console.log(profileImgPath)
+      // console.log("--------- null 일경우 ? profileImgPath")
+      // console.log(profileImgPath)
       if (profileImgPath !== '') {
         // 프로필 파일 삭제 & 추가
         if (oldProfileExists) {
-          if (reqJson.profileOld !== profileImg.originalname) {
-            console.log(reqJson.profileOld)
-            console.log(profileImg.originalname)
+          if (reqJson.profileOld !== decodeURIComponent(profileImg.originalname)) {
             await sftp.delete(oldProfilePath);
-            console.log(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제 11`);
+            // console.log(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제 11`);
             await sftp.put(profileImg.buffer, profileImgPath);
-            console.log(`새 프로필 이미지 ${reqJson.profileOld} 추가 11`);
+            // console.log(`새 프로필 이미지 ${reqJson.profileOld} 추가 11`);
           }
         } else {
-          console.log(`옛날 프로필 이미지 존재하지 않음`);
+          // console.log(`옛날 프로필 이미지 존재하지 않음`);
           await sftp.put(profileImg.buffer, profileImgPath);
-          console.log(`새 프로필 이미지 ${profileImg.originalname} 추가 22`);
+          // console.log(`새 프로필 이미지 ${profileImg.originalname} 추가 22`);
         }
       } else {
         if (oldProfileExists) {
-          console.log(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제`);
+          // console.log(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제`);
           await sftp.delete(oldProfilePath);
         }
       }
@@ -160,7 +154,7 @@ const siteCtrl = {
         }
         connection.end();
       });
-      res.send({
+      res.status(200).send({
         response: {
           code: 200,
           response: {
@@ -188,11 +182,9 @@ const siteCtrl = {
       const sourceDir = `/web/site/${reqJson.ptId}/${reqJson.userId}/img/`;
       await sftp.connect(sftpConfig);
       if (reqJson.state === "추가") {
-        // reqJson.logo = titleImg.originalname;
-        // reqJson.poster = posterImg.originalname;
         reqJson.src = String(reqJson.workId) + "_" + String(new Date().getTime());
         await sftp.mkdir(sourceDir + reqJson.src, true);
-        await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + reqJson.logo);
+        titleImg !== undefined && await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + reqJson.logo);
         await sftp.put(posterImg.buffer, sourceDir + reqJson.src + "/" + reqJson.poster);
         sftp.end();
         const connection = db();
@@ -207,27 +199,28 @@ const siteCtrl = {
             }
             connection.end();
             reqJson.workSeq = rows.insertId;
-            res.send({
-              response: {
-                code: 200,
-                response: {
-                  reqJson
-                },
-              },
+            res.status(200).send({
+              response: reqJson
             });
           });
         });
       } else if (reqJson.state === "수정") {
-        if (reqJson.posterImgOld !== posterImg.originalname) {
+        if (reqJson.posterImgOld !== decodeURIComponent(posterImg.originalname)) {
           await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.posterImgOld}`);
-          if (posterImg.originalname !== "") {
-            await sftp.put(posterImg.buffer, sourceDir + reqJson.src + "/" + posterImg.originalname);
-          }
+          await sftp.put(posterImg.buffer, sourceDir + reqJson.src + "/" + decodeURIComponent(posterImg.originalname));
         }
-        if (reqJson.titleImgOld !== titleImg.originalname) {
-          await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.titleImgOld}`);
-          if (titleImg.originalname !== "") {
-            await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + titleImg.originalname);
+        if (titleImg === undefined) {
+          if (reqJson.titleImgOld !== "none") {
+            await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.titleImgOld}`);
+          }
+        } else {
+          if (reqJson.titleImgOld !== "none") {
+            if (reqJson.titleImgOld !== decodeURIComponent(titleImg.originalname)) {
+              await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.titleImgOld}`);
+              await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + decodeURIComponent(titleImg.originalname));
+            }
+          } else {
+            await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + decodeURIComponent(titleImg.originalname));
           }
         }
         sftp.end();
@@ -237,13 +230,8 @@ const siteCtrl = {
             throw error;
           }
           connection.end();
-          res.send({
-            response: {
-              code: 200,
-              response: {
-                reqJson
-              },
-            },
+          res.status(200).send({
+            response: reqJson
           });
         });
       }
