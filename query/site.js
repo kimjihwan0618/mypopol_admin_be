@@ -18,7 +18,7 @@ const site = {
     SELECT * FROM works
     WHERE 1=1
     AND popolSeq = ${popolSeq}
-    ORDER BY workId
+    ORDER BY workId, ${"`order`"}
     `
   }
 };

@@ -152,8 +152,15 @@ const siteCtrl = {
         if (error) {
           throw error;
         }
-        connection.end();
       });
+      for (let i = 0; i < reqJson.workList.length; i++) {
+        connection.query(query.updateWorkOrder2(reqJson.workList[i], i), (error, rows) => {
+          if (error) {
+            throw error;
+          }
+        });
+      }
+      connection.end();
       res.status(200).send({
         response: {
           code: 200,

@@ -81,6 +81,14 @@ const query = {
       AND ${"`order`"} > ${param.order};
     `;
   },
+  updateWorkOrder2: (work, index) => {
+    return `  
+      UPDATE works SET ${"`order`"} = ${index} 
+      WHERE popolSeq = ${work.popolSeq}
+      AND workSeq = ${work.workSeq}
+      AND workId = ${work.workId}
+    `;
+  },
   seqWorkSeq: (param) => {
     return `  
       ALTER TABLE works AUTO_INCREMENT = ${param.lastWorkSeq};
