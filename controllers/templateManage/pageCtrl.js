@@ -14,12 +14,7 @@ const siteCtrl = {
         if (error) {
           throw error;
         }
-        res.send({
-          response: {
-            code: 200,
-            response: rows,
-          },
-        });
+        res.status(200).send(rows);
         connection.end();
       });
     } catch (error) {

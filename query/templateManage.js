@@ -1,9 +1,15 @@
 const query = {
   getPageTemList: (param) => {
     return `
-    SELECT * FROM popols
+    SELECT 
+	  A.*,
+	  B.description
+	  FROM popols AS A
+    LEFT OUTER JOIN popol_info AS B
+    ON 1=1
+    AND A.ptId = B.ptId
     WHERE 1=1
-    AND userKey = '${param.userKey}'
+    AND A.userKey = '${param.userKey}'
     `;
   },
   updatePageTem: (param) => {
