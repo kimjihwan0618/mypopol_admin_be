@@ -6,6 +6,14 @@ const siteCtrl = {
   getPopolInfo: async (req, res) => {
     try {
       const connection = db();
+      req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      if (req.body.countFlag) {
+        connection.query(query.addVisterCount(req.body), (error, res) => {
+          if (error) {
+            throw error;
+          }
+        })
+      }
       connection.query(query.getPopolInfo(queryParse.singleQuiteParse(req.body)), (error, rows1) => {
         if (error) {
           throw error;

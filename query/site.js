@@ -20,6 +20,12 @@ const site = {
     AND popolSeq = ${popolSeq}
     ORDER BY workId, ${"`order`"}
     `
+  },
+  addVisterCount: (param) => {
+    return `
+      INSERT INTO user_daily_visted (userId, ptId, userIp, vistedTime) 
+      VALUES ('${param.userId}', '${param.ptId}', '${param.userIp}' , NOW());
+    `
   }
 };
 
