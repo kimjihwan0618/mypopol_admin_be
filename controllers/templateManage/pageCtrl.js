@@ -14,8 +14,18 @@ const siteCtrl = {
         if (error) {
           throw error;
         }
-        res.status(200).send(rows);
-        connection.end();
+        for (let i = 0; i < rows.length; i++) {
+          connection.query(query.getPageVistedCt(rows[i]), (error, rows2) => {
+            if (error) {
+              throw error;
+            }
+            rows[i].vistedCount = rows2[0].ct
+            if (i === rows.length - 1) {
+              res.status(200).send(rows);
+              connection.end();
+            }
+          });
+        }
       });
     } catch (error) {
       console.error('getPageTemList error :', error);

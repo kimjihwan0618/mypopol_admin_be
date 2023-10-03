@@ -3,14 +3,26 @@ const query = {
     return `
     SELECT 
 	  A.*,
-	  B.description
+	  B.description,
+	  C.userId
 	  FROM popols AS A
     LEFT OUTER JOIN popol_info AS B
     ON 1=1
     AND A.ptId = B.ptId
+    LEFT OUTER JOIN users AS C
+    ON 1=1
+    AND A.userKey = C.userKey
     WHERE 1=1
     AND A.userKey = '${param.userKey}'
     `;
+  },
+  getPageVistedCt: (param) => {
+    return `
+      SELECT COUNT(*) AS ct FROM user_daily_visted
+      WHERE 1=1
+      AND userId = '${param.userId}'
+      AND ptId = '${param.ptId}'
+    `
   },
   updatePageTem: (param) => {
     return `
