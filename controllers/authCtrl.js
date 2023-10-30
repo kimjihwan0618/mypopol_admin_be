@@ -2,6 +2,11 @@ const db = require('../dbConfig');
 const query = require('../query/auth');
 const jwt = require('jsonwebtoken');
 const queryParse = require('../utills/queryParse');
+const path = require('path');
+const log4js = require('log4js');
+const log4jsConfigPath = path.join(__dirname, '../log4js.json');
+log4js.configure(log4jsConfigPath);
+const logger = log4js.getLogger('access');
 
 const dbCtrl = {
   signIn: async (req, res) => {
@@ -19,8 +24,9 @@ const dbCtrl = {
             roleId: `${rows[0].roleId}`,
             role: `${rows[0].roleName}`,
           };
-          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '120m' });
+          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' });
           // 개발 중에만 jwt 유효기간 늘려놓음
+          logger.info(`signIn : ${rows[0].userId}`);
           res.cookie('token', token, { httpOnly: true });
           res.send({
             code: 200,
@@ -44,7 +50,7 @@ const dbCtrl = {
         connection.end();
       });
     } catch (err) {
-      console.error('signIn error : ', err);
+      logger.error('signIn error : ', err);
       res.status(500).json({
         code: 500,
         status: 'Internal Server Error',
@@ -63,6 +69,7 @@ const dbCtrl = {
       const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '120m' });
       // 개발 중에만 jwt 유효기간 늘려놓음
       res.cookie('token', refreshToken, { httpOnly: true });
+      // logger.info(`accessToken : ${rows[0].userId}`);
       res.send({
         code: 200,
         response: {
@@ -74,7 +81,7 @@ const dbCtrl = {
         },
       });
     } catch (err) {
-      console.error('accessToken error : ', err);
+      logger.error('accessToken error : ', err);
       res.status(401).json({
         code: 401,
         status: 'Internal Server Error',

@@ -4,6 +4,11 @@ const query = require('../query/common');
 const url = require('url');
 const Client = require('ssh2-sftp-client');
 const sftp = new Client();
+const path = require('path');
+const log4js = require('log4js');
+const log4jsConfigPath = path.join(__dirname, '../log4js.json');
+log4js.configure(log4jsConfigPath);
+const logger = log4js.getLogger('access');
 
 const commonCtrl = {
   getMenus: async (req, res) => {
@@ -16,6 +21,7 @@ const commonCtrl = {
           throw error;
         }
         if (rows.length === 1) {
+          // logger.info(`getMenus : ${}`);
           res.send({
             code: 200,
             response: rows[0],
@@ -32,7 +38,7 @@ const commonCtrl = {
         connection.end();
       });
     } catch (error) {
-      console.error('getMenus error :', error);
+      logger.error('getMenus error :', error);
       res.status(500).json({
         code: 500,
         status: 'Internal Server Error',
@@ -45,15 +51,14 @@ const commonCtrl = {
   testSftp: async (req, res) => {
     const sourceDir = '/web/sources/templates/page/PTID01';
     // const targetDir = "/web/site/PTID01";
-
     try {
       // SFTP 서버에 연결
       await sftp.connect(sftpConfig);
       // 디렉토리 조회
       const directoryList = await sftp.list(sourceDir);
-      console.log(directoryList);
+      logger.info(directoryList);
     } catch (err) {
-      console.log(err);
+      logger.info(err);
     } finally {
       // SFTP 연결 종료
       await sftp.end();

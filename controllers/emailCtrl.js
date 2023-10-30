@@ -1,6 +1,14 @@
+const db = require('../dbConfig');
+const query = require('../query/email');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const filePath = './mailConfig.json';
+const path = require('path');
+const log4js = require('log4js');
+const log4jsConfigPath = path.join(__dirname, '../log4js.json');
+log4js.configure(log4jsConfigPath);
+const logger = log4js.getLogger('access');
+
 let mailConfig = '';
 fs.readFile(filePath, 'utf8', (err, data) => {
   if (err) throw err;
@@ -10,8 +18,9 @@ fs.readFile(filePath, 'utf8', (err, data) => {
 const emailCtrl = {
   sendMail: (req, res) => {
     try {
-      const { from, to, subject, body, pw } = req.body;
-      console.log(`Mail Send -> From : ${from}, To : ${to}`);
+      const connection = db();
+      const { from, to, subject, body, pw, title } = req.body;
+      logger.info(`Mail Send -> From : ${from}, To : ${to}`);
       if (pw === 'WlGhks010!@#') {
         const transporter = nodemailer.createTransport({
           host: mailConfig.host,
@@ -25,20 +34,24 @@ const emailCtrl = {
         const mailOptions = {
           from: mailConfig.user,
           to: to,
-          subject: subject,
+          subject: `[${subject}] ${title}`,
           html: body,
         };
         transporter.sendMail(mailOptions, function (error, info) {
           if (error) {
-            console.log(error);
+            logger.error(error);
           } else {
-            console.log('Email sent Success');
+            connection.query(query.insertMailCount(req.body), (error, rows) => {
+              if (error) {
+                throw error;
+              }
+              logger.info('Email sent Success');
+            });
           }
         });
-        res.end('/email/send Suc');
       }
     } catch (error) {
-      console.error('sendMail error : ', error);
+      logger.error('sendMail error : ', error);
       res.status(500).json({
         code: 500,
         status: 'Internal Server Error',

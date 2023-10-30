@@ -5,30 +5,39 @@ const query2 = require('../../query/site');
 const sftpConfig = require('../../sftpConfig');
 const Client = require('ssh2-sftp-client');
 const sftp = new Client();
+const path = require('path');
+const log4js = require('log4js');
+const log4jsConfigPath = path.join(__dirname, '../../log4js.json');
+log4js.configure(log4jsConfigPath);
+const logger = log4js.getLogger('access');
 
 const siteCtrl = {
   getPageTemList: async (req, res) => {
     try {
       const connection = db();
-      connection.query(query.getPageTemList(queryParse.singleQuiteParse(req.body)), (error, rows) => {
-        if (error) {
-          throw error;
+      connection.query(
+        query.getPageTemList(queryParse.singleQuiteParse(req.body)),
+        (error, rows) => {
+          if (error) {
+            throw error;
+          }
+          for (let i = 0; i < rows.length; i++) {
+            connection.query(query.getPageVistedCt(rows[i]), (error, rows2) => {
+              if (error) {
+                throw error;
+              }
+              rows[i].vistedCount = rows2[0].ct;
+              if (i === rows.length - 1) {
+                logger.info(`getPageTemList : ${rows[i].userId}`);
+                res.status(200).send(rows);
+                connection.end();
+              }
+            });
+          }
         }
-        for (let i = 0; i < rows.length; i++) {
-          connection.query(query.getPageVistedCt(rows[i]), (error, rows2) => {
-            if (error) {
-              throw error;
-            }
-            rows[i].vistedCount = rows2[0].ct
-            if (i === rows.length - 1) {
-              res.status(200).send(rows);
-              connection.end();
-            }
-          });
-        }
-      });
+      );
     } catch (error) {
-      console.error('getPageTemList error :', error);
+      logger.error('getPageTemList error :', error);
       res.status(500).json({
         code: 500,
         status: 'Internal Server Error',
@@ -47,7 +56,7 @@ const siteCtrl = {
         if (error) {
           throw error;
         }
-        req.body.lastWorkSeq = rows[0].last_work_seq
+        req.body.lastWorkSeq = rows[0].last_work_seq;
         connection.query(query.deleteWork(req.body), (error, rows) => {
           if (error) {
             throw error;
@@ -68,6 +77,7 @@ const siteCtrl = {
                   if (error) {
                     throw error;
                   }
+                  logger.info(`deleteWork : ${req.body.userId}`);
                   res.status(200).send({
                     response: rows,
                   });
@@ -79,7 +89,7 @@ const siteCtrl = {
         });
       });
     } catch (error) {
-      console.error('deleteWork error :', error);
+      logger.error('deleteWork error :', error);
       res.status(500).json({
         code: 500,
         status: 'Internal Server Error',
@@ -100,13 +110,17 @@ const siteCtrl = {
           ? `${sourceDir}/${decodeURIComponent(thumbnailImg.originalname)}`
           : '';
       const profileImgPath =
-        profileImg && decodeURIComponent(profileImg.originalname) ? `${sourceDir}/${decodeURIComponent(profileImg.originalname)}` : '';
+        profileImg && decodeURIComponent(profileImg.originalname)
+          ? `${sourceDir}/${decodeURIComponent(profileImg.originalname)}`
+          : '';
       await sftp.connect(sftpConfig);
       const oldThumbnailPath = `${sourceDir}/${reqJson.thumbnailOld}`;
       const oldProfilePath = `${sourceDir}/${reqJson.profileOld}`;
       const directoryList = await sftp.list(sourceDir);
       // 파일 조회
-      const oldThumbnailExists = directoryList.some((file) => file.name === `${reqJson.thumbnailOld}`);
+      const oldThumbnailExists = directoryList.some(
+        (file) => file.name === `${reqJson.thumbnailOld}`
+      );
       const oldProfileExists = directoryList.some((file) => file.name === `${reqJson.profileOld}`);
 
       if (thumbnailImgPath !== '') {
@@ -114,40 +128,40 @@ const siteCtrl = {
         if (oldThumbnailExists) {
           if (reqJson.thumbnailOld !== decodeURIComponent(thumbnailImg.originalname)) {
             await sftp.delete(oldThumbnailPath);
-            // console.log(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
+            // logger.info(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
             await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
-            // console.log(`새 썸네일 이미지 ${reqJson.thumbnailOld} 추가 11`);
+            // logger.info(`새 썸네일 이미지 ${reqJson.thumbnailOld} 추가 11`);
           }
         } else {
-          // console.log(`옛날 썸네일 이미지 존재하지 않음`);
+          // logger.info(`옛날 썸네일 이미지 존재하지 않음`);
           await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
-          // console.log(`새 썸네일 이미지 ${decodeURIComponent(thumbnailImg.originalname)} 추가 22`);
+          // logger.info(`새 썸네일 이미지 ${decodeURIComponent(thumbnailImg.originalname)} 추가 22`);
         }
       } else {
         if (oldThumbnailExists) {
-          // console.log(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
+          // logger.info(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
           await sftp.delete(oldThumbnailPath);
         }
       }
-      // console.log("--------- null 일경우 ? profileImgPath")
-      // console.log(profileImgPath)
+      // logger.info("--------- null 일경우 ? profileImgPath")
+      // logger.info(profileImgPath)
       if (profileImgPath !== '') {
         // 프로필 파일 삭제 & 추가
         if (oldProfileExists) {
           if (reqJson.profileOld !== decodeURIComponent(profileImg.originalname)) {
             await sftp.delete(oldProfilePath);
-            // console.log(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제 11`);
+            // logger.info(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제 11`);
             await sftp.put(profileImg.buffer, profileImgPath);
-            // console.log(`새 프로필 이미지 ${reqJson.profileOld} 추가 11`);
+            // logger.info(`새 프로필 이미지 ${reqJson.profileOld} 추가 11`);
           }
         } else {
-          // console.log(`옛날 프로필 이미지 존재하지 않음`);
+          // logger.info(`옛날 프로필 이미지 존재하지 않음`);
           await sftp.put(profileImg.buffer, profileImgPath);
-          // console.log(`새 프로필 이미지 ${profileImg.originalname} 추가 22`);
+          // logger.info(`새 프로필 이미지 ${profileImg.originalname} 추가 22`);
         }
       } else {
         if (oldProfileExists) {
-          // console.log(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제`);
+          // logger.info(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제`);
           await sftp.delete(oldProfilePath);
         }
       }
@@ -166,6 +180,7 @@ const siteCtrl = {
         });
       }
       connection.end();
+      logger.info(`updatePageTem : ${reqJson.userId}, ${reqJson.ptId}`);
       res.status(200).send({
         response: {
           code: 200,
@@ -176,7 +191,7 @@ const siteCtrl = {
         },
       });
     } catch (error) {
-      console.error('updatePageTem error :', error);
+      logger.error('updatePageTem error :', error);
       res.status(500).json({
         code: 500,
         status: 'Internal Server Error',
@@ -193,46 +208,57 @@ const siteCtrl = {
       const posterImg = files.find((file) => file.fieldname === 'posterImg');
       const sourceDir = `/web/site/${reqJson.ptId}/${reqJson.userId}/img/`;
       await sftp.connect(sftpConfig);
-      if (reqJson.state === "추가") {
-        reqJson.src = String(reqJson.workId) + "_" + String(new Date().getTime());
+      if (reqJson.state === '추가') {
+        reqJson.src = String(reqJson.workId) + '_' + String(new Date().getTime());
         await sftp.mkdir(sourceDir + reqJson.src, true);
-        titleImg !== undefined && await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + reqJson.logo);
-        await sftp.put(posterImg.buffer, sourceDir + reqJson.src + "/" + reqJson.poster);
+        titleImg !== undefined &&
+          (await sftp.put(titleImg.buffer, sourceDir + reqJson.src + '/' + reqJson.logo));
+        await sftp.put(posterImg.buffer, sourceDir + reqJson.src + '/' + reqJson.poster);
         sftp.end();
         const connection = db();
         connection.query(query.seletWorkOrder(reqJson), (error, rows) => {
           if (error) {
             throw error;
           }
-          reqJson.order = rows[0]["max_order"]
+          reqJson.order = rows[0]['max_order'];
           connection.query(query.addWork(queryParse.singleQuiteParse(reqJson)), (error, rows) => {
             if (error) {
               throw error;
             }
             connection.end();
             reqJson.workSeq = rows.insertId;
+            logger.info(`addOrUpdateWork_추가 : ${reqJson.userId}, ${reqJson.ptId}`);
             res.status(200).send({
-              response: reqJson
+              response: reqJson,
             });
           });
         });
-      } else if (reqJson.state === "수정") {
+      } else if (reqJson.state === '수정') {
         if (reqJson.posterImgOld !== decodeURIComponent(posterImg.originalname)) {
           await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.posterImgOld}`);
-          await sftp.put(posterImg.buffer, sourceDir + reqJson.src + "/" + decodeURIComponent(posterImg.originalname));
+          await sftp.put(
+            posterImg.buffer,
+            sourceDir + reqJson.src + '/' + decodeURIComponent(posterImg.originalname)
+          );
         }
         if (titleImg === undefined) {
-          if (reqJson.titleImgOld !== "none") {
+          if (reqJson.titleImgOld !== 'none') {
             await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.titleImgOld}`);
           }
         } else {
-          if (reqJson.titleImgOld !== "none") {
+          if (reqJson.titleImgOld !== 'none') {
             if (reqJson.titleImgOld !== decodeURIComponent(titleImg.originalname)) {
               await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.titleImgOld}`);
-              await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + decodeURIComponent(titleImg.originalname));
+              await sftp.put(
+                titleImg.buffer,
+                sourceDir + reqJson.src + '/' + decodeURIComponent(titleImg.originalname)
+              );
             }
           } else {
-            await sftp.put(titleImg.buffer, sourceDir + reqJson.src + "/" + decodeURIComponent(titleImg.originalname));
+            await sftp.put(
+              titleImg.buffer,
+              sourceDir + reqJson.src + '/' + decodeURIComponent(titleImg.originalname)
+            );
           }
         }
         sftp.end();
@@ -242,13 +268,14 @@ const siteCtrl = {
             throw error;
           }
           connection.end();
+          logger.info(`addOrUpdateWork_수정 : ${reqJson.userId}, ${reqJson.ptId}`);
           res.status(200).send({
-            response: reqJson
+            response: reqJson,
           });
         });
       }
     } catch (error) {
-      console.error('addOrUpdateWork error :', error);
+      logger.error('addOrUpdateWork error :', error);
       res.status(500).json({
         code: 500,
         status: 'Internal Server Error',
