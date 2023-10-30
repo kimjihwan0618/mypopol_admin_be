@@ -19,6 +19,7 @@ const emailCtrl = {
   sendMail: (req, res) => {
     try {
       const connection = db();
+      req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       const { from, to, subject, body, pw, title } = req.body;
       logger.info(`Mail Send -> From : ${from}, To : ${to}`);
       if (pw === 'WlGhks010!@#') {
@@ -45,10 +46,12 @@ const emailCtrl = {
               if (error) {
                 throw error;
               }
+              connection.end();
               logger.info('Email sent Success');
             });
           }
         });
+        res.end('/email/send Suc');
       }
     } catch (error) {
       logger.error('sendMail error : ', error);
