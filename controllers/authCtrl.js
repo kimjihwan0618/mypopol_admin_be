@@ -2,11 +2,20 @@ const db = require('../dbConfig');
 const query = require('../query/auth');
 const jwt = require('jsonwebtoken');
 const queryParse = require('../utills/queryParse');
+const nodemailer = require('nodemailer');
 const path = require('path');
+const fs = require('fs');
 const log4js = require('log4js');
 const log4jsConfigPath = path.join(__dirname, '../log4js.json');
 log4js.configure(log4jsConfigPath);
 const logger = log4js.getLogger('access');
+const filePath = './mailConfig.json';
+
+let mailConfig = '';
+fs.readFile(filePath, 'utf8', (err, data) => {
+  if (err) throw err;
+  mailConfig = JSON.parse(data);
+});
 
 const dbCtrl = {
   signIn: async (req, res) => {
@@ -91,6 +100,42 @@ const dbCtrl = {
     }
   },
   // accessToken
+  signCodePub: async (req, res) => {
+    try {
+      const { email } = req.body;
+      const transporter = nodemailer.createTransport({
+        host: mailConfig.host,
+        port: 465,
+        secure: true,
+        auth: {
+          user: mailConfig.user,
+          pass: mailConfig.pass,
+        },
+      });
+      const mailOptions = {
+        from: mailConfig.user,
+        to: email,
+        subject: `[이메일]인증코드 발급`,
+        html: '80009850',
+      };
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          logger.error(error);
+        } else {
+          logger.info('Email sent Success');
+        }
+      });
+    } catch (err) {
+      logger.error('signCodePub error : ', err);
+      res.status(401).json({
+        code: 401,
+        status: 'Internal Server Error',
+        message: 'Invalid token',
+        timestamp: new Date(),
+      });
+    }
+  },
+  // signCodePub
 };
 
 module.exports = dbCtrl;
