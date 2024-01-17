@@ -1,13 +1,14 @@
+const root = require.main.path;
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const app = express();
 const multer = require('multer');
-const path = require('path');
 const log4js = require('log4js');
-const log4jsConfigPath = path.join(__dirname, './log4js.json');
-log4js.configure(log4jsConfigPath);
 const logger = log4js.getLogger('access');
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
+log4js.configure(log4jsConfig);
 
 const corsOptions = {
   origin: [

@@ -1,19 +1,13 @@
-const db = require('../dbConfig');
-const query = require('../query/email');
-const nodemailer = require('nodemailer');
-const fs = require('fs');
-const filePath = './mailConfig.json';
+const root = require.main.path;
 const path = require('path');
 const log4js = require('log4js');
-const log4jsConfigPath = path.join(__dirname, '../log4js.json');
-log4js.configure(log4jsConfigPath);
+const nodemailer = require('nodemailer');
+const db = require(path.join(root, 'config/db.config'));
+const query = require(path.join(root, 'query/email'));
+const emailAuth = require(path.join(root, 'config/mail.config'));
 const logger = log4js.getLogger('access');
-
-let mailConfig = '';
-fs.readFile(filePath, 'utf8', (err, data) => {
-  if (err) throw err;
-  mailConfig = JSON.parse(data);
-});
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
+log4js.configure(log4jsConfig);
 
 const emailCtrl = {
   sendMail: (req, res) => {
@@ -24,16 +18,16 @@ const emailCtrl = {
       logger.info(`Mail Send -> From : ${from}, To : ${to}`);
       if (pw === 'WlGhks010!@#') {
         const transporter = nodemailer.createTransport({
-          host: mailConfig.host,
+          host: emailAuth.host,
           port: 465,
           secure: true,
           auth: {
-            user: mailConfig.user,
-            pass: mailConfig.pass,
+            user: emailAuth.user,
+            pass: emailAuth.pass,
           },
         });
         const mailOptions = {
-          from: mailConfig.user,
+          from: emailAuth.user,
           to: to,
           subject: `[${subject}] ${title}`,
           html: body,

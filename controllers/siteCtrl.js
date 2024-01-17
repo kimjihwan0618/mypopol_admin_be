@@ -1,11 +1,12 @@
-const db = require('../dbConfig');
-const query = require('../query/site');
-const queryParse = require('../utills/queryParse');
+const root = require.main.path;
 const path = require('path');
 const log4js = require('log4js');
-const log4jsConfigPath = path.join(__dirname, '../log4js.json');
-log4js.configure(log4jsConfigPath);
+const db = require(path.join(root, 'config/db.config'));
+const query = require(path.join(root, 'query/site'));
+const queryParse = require(path.join(root, 'utills/queryParse'));
 const logger = log4js.getLogger('access');
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
+log4js.configure(log4jsConfig);
 
 const siteCtrl = {
   getPopolInfo: async (req, res) => {

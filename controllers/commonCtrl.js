@@ -1,14 +1,12 @@
-const db = require('../dbConfig');
-const sftpConfig = require('../sftpConfig');
-const query = require('../query/common');
+const root = require.main.path;
 const url = require('url');
-const Client = require('ssh2-sftp-client');
-const sftp = new Client();
 const path = require('path');
 const log4js = require('log4js');
-const log4jsConfigPath = path.join(__dirname, '../log4js.json');
-log4js.configure(log4jsConfigPath);
+const db = require(path.join(root, 'config/db.config'));
+const query = require(path.join(root, 'query/common'));
 const logger = log4js.getLogger('access');
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
+log4js.configure(log4jsConfig);
 
 const commonCtrl = {
   getMenus: async (req, res) => {
@@ -47,24 +45,6 @@ const commonCtrl = {
       });
     }
   },
-  // getMenus
-  testSftp: async (req, res) => {
-    const sourceDir = '/web/sources/templates/page/PTID01';
-    // const targetDir = "/web/site/PTID01";
-    try {
-      // SFTP 서버에 연결
-      await sftp.connect(sftpConfig);
-      // 디렉토리 조회
-      const directoryList = await sftp.list(sourceDir);
-      logger.info(directoryList);
-    } catch (err) {
-      logger.info(err);
-    } finally {
-      // SFTP 연결 종료
-      await sftp.end();
-    }
-  },
-  // testSftp
 };
 
 module.exports = commonCtrl;

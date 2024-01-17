@@ -1,9 +1,7 @@
-dbConfig.js
-
 package-lock.json
 
 node_modules/
 
-mailConfig.json
+logs/
 
-sftpConfig.js
+config/

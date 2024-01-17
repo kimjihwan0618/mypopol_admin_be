@@ -1,15 +1,16 @@
-const db = require('../../dbConfig');
-const queryParse = require('../../utills/queryParse');
-const query = require('../../query/templateManage');
-const query2 = require('../../query/site');
-const sftpConfig = require('../../sftpConfig');
-const Client = require('ssh2-sftp-client');
-const sftp = new Client();
+const root = require.main.path;
 const path = require('path');
 const log4js = require('log4js');
-const log4jsConfigPath = path.join(__dirname, '../../log4js.json');
-log4js.configure(log4jsConfigPath);
+const Client = require('ssh2-sftp-client');
+const sftp = new Client();
+const db = require(path.join(root, 'config/db.config'));
+const queryParse = require(path.join(root, 'utills/queryParse'));
+const query = require(path.join(root, 'query/templateManage'));
+const query2 = require(path.join(root, 'query/site'));
+const sftpConfig = require(path.join(root, 'config/sftp.config'));
 const logger = log4js.getLogger('access');
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
+log4js.configure(log4jsConfig);
 
 const siteCtrl = {
   getPageTemList: async (req, res) => {

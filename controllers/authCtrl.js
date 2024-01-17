@@ -1,21 +1,16 @@
-const db = require('../dbConfig');
-const query = require('../query/auth');
-const jwt = require('jsonwebtoken');
-const queryParse = require('../utills/queryParse');
-const nodemailer = require('nodemailer');
+const root = require.main.path;
 const path = require('path');
-const fs = require('fs');
 const log4js = require('log4js');
-const log4jsConfigPath = path.join(__dirname, '../log4js.json');
-log4js.configure(log4jsConfigPath);
+const db = require(path.join(root, 'config/db.config'));
+const nodemailer = require('nodemailer');
+const query = require(path.join(root, 'query/auth'));
+const jwt = require('jsonwebtoken');
+const queryParse = require(path.join(root, 'utills/queryParse'));
+const getErrorCode = require(path.join(root, 'utills/getErrCode'));
+const emailAuth = require(path.join(root, 'config/mail.config'));
 const logger = log4js.getLogger('access');
-const filePath = './mailConfig.json';
-
-let mailConfig = '';
-fs.readFile(filePath, 'utf8', (err, data) => {
-  if (err) throw err;
-  mailConfig = JSON.parse(data);
-});
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
+log4js.configure(log4jsConfig);
 
 const dbCtrl = {
   signIn: async (req, res) => {
@@ -60,9 +55,7 @@ const dbCtrl = {
       });
     } catch (err) {
       logger.error('signIn error : ', err);
-      res.status(500).json({
-        code: 500,
-        status: 'Internal Server Error',
+      res.status(getErrorCode(err)).json({
         message: 'signIn error : 내부 서버 오류가 발생했습니다.',
         timestamp: new Date(),
       });
@@ -90,11 +83,8 @@ const dbCtrl = {
         },
       });
     } catch (err) {
-      logger.error('accessToken error : ', err);
-      res.status(401).json({
-        code: 401,
-        status: 'Internal Server Error',
-        message: 'Invalid token',
+      res.status(getErrorCode(err)).json({
+        message: 'accessToken token',
         timestamp: new Date(),
       });
     }
@@ -103,17 +93,18 @@ const dbCtrl = {
   signCodePub: async (req, res) => {
     try {
       const { email } = req.body;
+      const authKey = new Date().getTime();
       const transporter = nodemailer.createTransport({
-        host: mailConfig.host,
-        port: 465,
+        host: emailAuth.host,
+        port: 466,
         secure: true,
         auth: {
-          user: mailConfig.user,
-          pass: mailConfig.pass,
+          user: emailAuth.user,
+          pass: emailAuth.pass,
         },
       });
       const mailOptions = {
-        from: mailConfig.user,
+        from: emailAuth.user,
         to: email,
         subject: `[이메일]인증코드 발급`,
         html: '80009850',
@@ -125,12 +116,13 @@ const dbCtrl = {
           logger.info('Email sent Success');
         }
       });
+      res.status(200).send({
+        authKey,
+      });
     } catch (err) {
       logger.error('signCodePub error : ', err);
-      res.status(401).json({
-        code: 401,
-        status: 'Internal Server Error',
-        message: 'Invalid token',
+      res.status(getErrorCode(err)).send({
+        message: 'signCodePub Error',
         timestamp: new Date(),
       });
     }
