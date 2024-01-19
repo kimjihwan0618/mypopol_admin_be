@@ -6,7 +6,7 @@ const db = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/email'));
 const emailAuth = require(path.join(root, 'config/mail.config'));
 const logger = log4js.getLogger('access');
-const log4jsConfig = path.join(root, 'config/log4js.config.json');
+const log4jsConfig = path.join(root, 'config/log4js.config');
 log4js.configure(log4jsConfig);
 
 const emailCtrl = {

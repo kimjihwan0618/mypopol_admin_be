@@ -7,7 +7,7 @@ const app = express();
 const multer = require('multer');
 const log4js = require('log4js');
 const logger = log4js.getLogger('access');
-const log4jsConfig = path.join(root, 'config/log4js.config.json');
+const log4jsConfig = path.join(root, 'config/log4js.config');
 log4js.configure(log4jsConfig);
 
 const corsOptions = {

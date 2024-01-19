@@ -5,7 +5,7 @@ const db = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/site'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
 const logger = log4js.getLogger('access');
-const log4jsConfig = path.join(root, 'config/log4js.config.json');
+const log4jsConfig = path.join(root, 'config/log4js.config');
 log4js.configure(log4jsConfig);
 
 const siteCtrl = {

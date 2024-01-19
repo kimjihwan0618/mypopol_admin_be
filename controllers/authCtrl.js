@@ -9,7 +9,7 @@ const queryParse = require(path.join(root, 'utills/queryParse'));
 const getErrorCode = require(path.join(root, 'utills/getErrCode'));
 const emailAuth = require(path.join(root, 'config/mail.config'));
 const logger = log4js.getLogger('access');
-const log4jsConfig = path.join(root, 'config/log4js.config.json');
+const log4jsConfig = path.join(root, 'config/log4js.config');
 log4js.configure(log4jsConfig);
 
 const dbCtrl = {
