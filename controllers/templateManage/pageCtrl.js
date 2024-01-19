@@ -9,7 +9,7 @@ const query = require(path.join(root, 'query/templateManage'));
 const query2 = require(path.join(root, 'query/site'));
 const sftpConfig = require(path.join(root, 'config/sftp.config'));
 const logger = log4js.getLogger('access');
-const log4jsConfig = path.join(root, 'config/log4js.config');
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
 const siteCtrl = {

@@ -9,11 +9,11 @@ const queryParse = require(path.join(root, 'utills/queryParse'));
 const getErrorCode = require(path.join(root, 'utills/getErrCode'));
 const emailAuth = require(path.join(root, 'config/mail.config'));
 const logger = log4js.getLogger('access');
-const log4jsConfig = path.join(root, 'config/log4js.config');
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
 const dbCtrl = {
-  signIn: async (req, res) => {
+  postSignIn: async (req, res) => {
     try {
       const connection = db();
       connection.query(query.getUser(queryParse.singleQuiteParse(req.body)), (error, rows) => {
@@ -43,10 +43,7 @@ const dbCtrl = {
             },
           });
         } else {
-          const code = 401;
-          res.status(code).json({
-            code: code,
-            status: 'Unauthorized',
+          res.status(401).json({
             message: '일치하는 유저 정보가 없습니다.',
             timestamp: new Date(),
           });
@@ -54,15 +51,14 @@ const dbCtrl = {
         connection.end();
       });
     } catch (err) {
-      logger.error('signIn error : ', err);
+      logger.error('signIn 에러 : ', err);
       res.status(getErrorCode(err)).json({
-        message: 'signIn error : 내부 서버 오류가 발생했습니다.',
+        message: 'signIn 애러',
         timestamp: new Date(),
       });
     }
   },
-  // signIn
-  accessToken: async (req, res) => {
+  postAccessToken: async (req, res) => {
     try {
       const token = req.headers.authorization.split(' ')[1];
       const decodedToken = jwt.verify(token, 'my_secret_key');
@@ -83,20 +79,20 @@ const dbCtrl = {
         },
       });
     } catch (err) {
+      logger.error('accessToken 에러 : ', err);
       res.status(getErrorCode(err)).json({
-        message: 'accessToken token',
+        message: 'accessToken 에러',
         timestamp: new Date(),
       });
     }
   },
-  // accessToken
-  signCodePub: async (req, res) => {
+  postAuthCode: async (req, res) => {
     try {
       const { email } = req.body;
-      const authKey = new Date().getTime();
+      const authKey = String(new Date().getTime()).slice(-8);
       const transporter = nodemailer.createTransport({
         host: emailAuth.host,
-        port: 466,
+        port: 465,
         secure: true,
         auth: {
           user: emailAuth.user,
@@ -106,28 +102,46 @@ const dbCtrl = {
       const mailOptions = {
         from: emailAuth.user,
         to: email,
-        subject: `[이메일]인증코드 발급`,
-        html: '80009850',
+        subject: `[마이포폴]계정생성 인증코드 발급`,
+        html: `
+        <p>안녕하세요 마이포폴입니다.</p>
+        <br />
+        <p>화면에서 인증코드를 입력해주세요</p>
+        <br />
+        <br />
+        <p style="font-weight: bold;">인증코드 : ${authKey}</p>
+        `,
       };
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
           logger.error(error);
         } else {
-          logger.info('Email sent Success');
+          logger.info(`계정생성 인증메일 전송. 유저 : ${email}`);
         }
       });
       res.status(200).send({
         authKey,
       });
     } catch (err) {
-      logger.error('signCodePub error : ', err);
+      logger.error('signCodePub 에러 : ', err);
       res.status(getErrorCode(err)).send({
-        message: 'signCodePub Error',
+        message: 'signCodePub 에러',
         timestamp: new Date(),
       });
     }
   },
-  // signCodePub
+  getUser: async (req, res) => {
+    const connection = db();
+    connection.query(query.getUser(queryParse.singleQuiteParse(req.query)), (error, rows) => {
+      if (error) {
+        throw error;
+      }
+      res.status(200).send({
+        users: rows,
+      });
+      connection.end();
+    });
+  }
 };
 
 module.exports = dbCtrl;

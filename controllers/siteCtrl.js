@@ -4,12 +4,13 @@ const log4js = require('log4js');
 const db = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/site'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
+const getErrorCode = require(path.join(root, 'utills/getErrCode'));
 const logger = log4js.getLogger('access');
-const log4jsConfig = path.join(root, 'config/log4js.config');
+const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
 const siteCtrl = {
-  getPopolInfo: async (req, res) => {
+  postPopolInfo: async (req, res) => {
     try {
       const connection = db();
       req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -28,7 +29,7 @@ const siteCtrl = {
           }
           if (rows1.length === 1) {
             connection.query(query.getWorks(rows1[0].popolSeq), (error, rows2) => {
-              logger.info(`getPopolInfo : ${req.body.userId}`);
+              logger.info(`postPopolInfo : ${req.body.userId}`);
               res.status(200).send({
                 response: {
                   popolInfo: rows1[0],
@@ -41,11 +42,9 @@ const siteCtrl = {
         }
       );
     } catch (error) {
-      logger.error('getPopolInfo error :', error);
-      res.status(500).json({
-        code: 500,
-        status: 'Internal Server Error',
-        message: 'getPopolInfo error : 내부 서버 오류가 발생했습니다.',
+      logger.error('postPopolInfo 에러 :', error);
+      res.status(getErrorCode(err)).json({
+        message: 'postPopolInfo 에러',
         timestamp: new Date(),
       });
     }

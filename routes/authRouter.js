@@ -1,8 +1,9 @@
 const authCtrl = require('../controllers/authCtrl');
 const router = require('express').Router();
 
-router.route('/login').post(authCtrl.signIn);
-router.route('/accessToken').get(authCtrl.accessToken);
-router.route('/get/signUpCode').post(authCtrl.signCodePub);
+router.route('/post/login').post(authCtrl.postSignIn);
+router.route('/post/accessToken').get(authCtrl.postAccessToken);
+router.route('/post/signUpCode').post(authCtrl.postAuthCode);
+router.route('/get/user').get(authCtrl.getUser);
 
 module.exports = router;

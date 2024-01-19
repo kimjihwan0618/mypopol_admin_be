@@ -12,9 +12,9 @@ const auth = {
       ON 1=1
       AND A.roleId = B.roleId
       WHERE 1=1
-      AND userKey = '${param.userKey}'
+      ${param.hasOwnProperty('userKey') ? `AND userKey = '${param.userKey}'` : ""}
+      ${param.hasOwnProperty('password') ? `AND password = '${param.password}'` : ""}
       AND userId = '${param.userId}'
-      AND password = '${param.password}'
     `
   }
 }
