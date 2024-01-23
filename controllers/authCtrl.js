@@ -30,10 +30,8 @@ const dbCtrl = {
           };
           const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' });
           // 개발 중에만 jwt 유효기간 늘려놓음
-          logger.info(`signIn : ${rows[0].userId}`);
           res.cookie('token', token, { httpOnly: true });
-          res.send({
-            code: 200,
+          res.status(200).send({
             response: {
               ...{
                 accessToken: token,
@@ -42,12 +40,11 @@ const dbCtrl = {
               ...user,
             },
           });
+          logger.info(`유저가 로그인하였습니다. : ${rows[0].userId}`);
         } else {
-          const code = 401;
-          res.status(code).json({
-            code: code,
+          res.status(401).send({
             status: 'Unauthorized',
-            message: '일치하는 유저 정보가 없습니다.',
+            message: '로그인 정보가 일치하는 유저가 없습니다.',
             timestamp: new Date(),
           });
         }
@@ -71,9 +68,7 @@ const dbCtrl = {
       const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '120m' });
       // 개발 중에만 jwt 유효기간 늘려놓음
       res.cookie('token', refreshToken, { httpOnly: true });
-      // logger.info(`accessToken : ${rows[0].userId}`);
-      res.send({
-        code: 200,
+      res.status(200).send({
         response: {
           ...{
             accessToken: refreshToken,
@@ -82,6 +77,7 @@ const dbCtrl = {
           ...decodedToken,
         },
       });
+      logger.info(`jwt 토큰을 발급하였습니다 : ${rows[0].userId}`);
     } catch (err) {
       res.status(getErrorCode(err)).json({
         message: 'accessToken token',
@@ -93,10 +89,10 @@ const dbCtrl = {
   signCodePub: async (req, res) => {
     try {
       const { email } = req.body;
-      const authKey = new Date().getTime();
+      const authKey = String(new Date().getTime()).slice(-8);
       const transporter = nodemailer.createTransport({
         host: emailAuth.host,
-        port: 466,
+        port: 465,
         secure: true,
         auth: {
           user: emailAuth.user,
@@ -107,13 +103,16 @@ const dbCtrl = {
         from: emailAuth.user,
         to: email,
         subject: `[이메일]인증코드 발급`,
-        html: '80009850',
+        html: `<div>
+        <p>화면에서 인증코드를 입력해주세요</p><br />
+        <p style="font-weight : bold;">인증코드 : ${authKey}</p>
+        </div>`,
       };
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
-          logger.error(error);
+          logger.error(`signCodePub send error : ${error}`);
         } else {
-          logger.info('Email sent Success');
+          logger.info(`회원가입을 위한 본인 인증번호를 발급하였습니다. ${email}`);
         }
       });
       res.status(200).send({
