@@ -30,10 +30,8 @@ const dbCtrl = {
           };
           const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' });
           // 개발 중에만 jwt 유효기간 늘려놓음
-          logger.info(`signIn : ${rows[0].userId}`);
           res.cookie('token', token, { httpOnly: true });
-          res.send({
-            code: 200,
+          res.status(200).send({
             response: {
               ...{
                 accessToken: token,
@@ -42,6 +40,7 @@ const dbCtrl = {
               ...user,
             },
           });
+          logger.info(`유저가 로그인하였습니다. : ${rows[0].userId}`);
         } else {
           res.status(401).json({
             message: '일치하는 유저 정보가 없습니다.',
@@ -67,9 +66,7 @@ const dbCtrl = {
       const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '120m' });
       // 개발 중에만 jwt 유효기간 늘려놓음
       res.cookie('token', refreshToken, { httpOnly: true });
-      // logger.info(`accessToken : ${rows[0].userId}`);
-      res.send({
-        code: 200,
+      res.status(200).send({
         response: {
           ...{
             accessToken: refreshToken,
@@ -78,6 +75,7 @@ const dbCtrl = {
           ...decodedToken,
         },
       });
+      logger.info(`jwt 토큰을 발급하였습니다 : ${rows[0].userId}`);
     } catch (err) {
       logger.error('accessToken 에러 : ', err);
       res.status(getErrorCode(err)).json({
@@ -114,9 +112,9 @@ const dbCtrl = {
       };
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
-          logger.error(error);
+          logger.error(`signCodePub send error : ${error}`);
         } else {
-          logger.info(`계정생성 인증메일 전송. 유저 : ${email}`);
+          logger.info(`회원가입을 위한 본인 인증번호를 발급하였습니다. ${email}`);
         }
       });
       res.status(200).send({
