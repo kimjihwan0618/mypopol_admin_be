@@ -3,7 +3,7 @@ const path = require('path');
 const log4js = require('log4js');
 const Client = require('ssh2-sftp-client');
 const sftp = new Client();
-const db = require(path.join(root, 'config/db.config'));
+const dbPool = require(path.join(root, 'config/db.config'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
 const query = require(path.join(root, 'query/templateManage'));
 const query2 = require(path.join(root, 'query/site'));
@@ -14,89 +14,48 @@ log4js.configure(log4jsConfig);
 
 const siteCtrl = {
   getPageTemList: async (req, res) => {
+    const connection = await dbPool.getConnection();
     try {
-      const connection = db();
-      connection.query(
-        query.getPageTemList(queryParse.singleQuiteParse(req.body)),
-        (error, rows) => {
-          if (error) {
-            throw error;
-          }
-          for (let i = 0; i < rows.length; i++) {
-            connection.query(query.getPageVistedCt(rows[i]), (error, rows2) => {
-              if (error) {
-                throw error;
-              }
-              rows[i].vistedCount = rows2[0].ct;
-              if (i === rows.length - 1) {
-                logger.info(`getPageTemList : ${rows[i].userId}`);
-                res.status(200).send(rows);
-                connection.end();
-              }
-            });
-          }
-        }
-      );
-    } catch (error) {
-      logger.error('getPageTemList error :', error);
+      const [templates, error] = await connection.query(query.getPageTemList(queryParse.singleQuiteParse(req.body)))
+      for (let template of templates) {
+        const [visted, error2] = await connection.query(query.getPageVistedCt(template))
+        template.vistedCount = visted[0].ct;
+      }
+      res.status(200).send(templates);
+      logger.info(`getPageTemList : ${template.userId}`);
+    } catch (err) {
       res.status(500).json({
-        code: 500,
-        status: 'Internal Server Error',
         message: 'getPageTemList error : 내부 서버 오류가 발생했습니다.',
         timestamp: new Date(),
       });
+      logger.error('getPageTemList error :', err);
+    } finally {
+      connection.release();
     }
   },
   deleteWork: async (req, res) => {
+    const connection = await dbPool.getConnection();
+    await sftp.connect(sftpConfig);
     try {
-      const connection = db();
-      await sftp.connect(sftpConfig);
       await sftp.rmdir(`/web/site/${req.body.ptId}/${req.body.userId}/img/${req.body.src}`, true);
       sftp.end();
-      connection.query(query.seletLastWorkSeq(), (error, rows) => {
-        if (error) {
-          throw error;
-        }
-        req.body.lastWorkSeq = rows[0].last_work_seq;
-        connection.query(query.deleteWork(req.body), (error, rows) => {
-          if (error) {
-            throw error;
-          }
-          connection.query(query.updateWorkSeq(req.body), (error, rows) => {
-            if (error) {
-              throw error;
-            }
-            connection.query(query.updateWorkOrder(req.body), (error, rows) => {
-              if (error) {
-                throw error;
-              }
-              connection.query(query.seqWorkSeq(req.body), (error, rows) => {
-                if (error) {
-                  throw error;
-                }
-                connection.query(query2.getWorks(req.body.popolSeq), (error, rows) => {
-                  if (error) {
-                    throw error;
-                  }
-                  logger.info(`deleteWork : ${req.body.userId}`);
-                  res.status(200).send({
-                    response: rows,
-                  });
-                  connection.end();
-                });
-              });
-            });
-          });
-        });
+      await connection.beginTransaction();
+      await connection.query(query.deleteWork(req.body))
+      await connection.query(query.updateWorkOrder(req.body))
+      await connection.commit();
+      const [rows, error] = await connection.query(query2.getWorks(req.body.popolSeq))
+      res.status(200).send({
+        response: rows,
       });
-    } catch (error) {
-      logger.error('deleteWork error :', error);
+      logger.info(`deleteWork userId : ${req.body.userId}, workId : ${req.body.workSeq}`);
+    } catch (err) {
       res.status(500).json({
-        code: 500,
-        status: 'Internal Server Error',
         message: 'deleteWork error : 내부 서버 오류가 발생했습니다.',
         timestamp: new Date(),
       });
+      logger.error('deleteWork error :', err);
+    } finally {
+      connection.release();
     }
   },
   updatePageTem: async (req, res) => {
@@ -118,87 +77,59 @@ const siteCtrl = {
       const oldThumbnailPath = `${sourceDir}/${reqJson.thumbnailOld}`;
       const oldProfilePath = `${sourceDir}/${reqJson.profileOld}`;
       const directoryList = await sftp.list(sourceDir);
-      // 파일 조회
-      const oldThumbnailExists = directoryList.some(
-        (file) => file.name === `${reqJson.thumbnailOld}`
-      );
+      const oldThumbnailExists = directoryList.some((file) => file.name === `${reqJson.thumbnailOld}`);
       const oldProfileExists = directoryList.some((file) => file.name === `${reqJson.profileOld}`);
 
-      if (thumbnailImgPath !== '') {
-        // 썸네일 파일 삭제 & 추가
+      if (thumbnailImgPath) {
         if (oldThumbnailExists) {
           if (reqJson.thumbnailOld !== decodeURIComponent(thumbnailImg.originalname)) {
             await sftp.delete(oldThumbnailPath);
-            // logger.info(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
             await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
-            // logger.info(`새 썸네일 이미지 ${reqJson.thumbnailOld} 추가 11`);
           }
         } else {
-          // logger.info(`옛날 썸네일 이미지 존재하지 않음`);
           await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
-          // logger.info(`새 썸네일 이미지 ${decodeURIComponent(thumbnailImg.originalname)} 추가 22`);
         }
       } else {
         if (oldThumbnailExists) {
-          // logger.info(`옛날 썸네일 이미지 ${reqJson.thumbnailOld} 삭제`);
           await sftp.delete(oldThumbnailPath);
         }
       }
-      // logger.info("--------- null 일경우 ? profileImgPath")
-      // logger.info(profileImgPath)
-      if (profileImgPath !== '') {
-        // 프로필 파일 삭제 & 추가
+
+      if (profileImgPath) {
         if (oldProfileExists) {
           if (reqJson.profileOld !== decodeURIComponent(profileImg.originalname)) {
             await sftp.delete(oldProfilePath);
-            // logger.info(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제 11`);
             await sftp.put(profileImg.buffer, profileImgPath);
-            // logger.info(`새 프로필 이미지 ${reqJson.profileOld} 추가 11`);
           }
         } else {
-          // logger.info(`옛날 프로필 이미지 존재하지 않음`);
           await sftp.put(profileImg.buffer, profileImgPath);
-          // logger.info(`새 프로필 이미지 ${profileImg.originalname} 추가 22`);
         }
       } else {
         if (oldProfileExists) {
-          // logger.info(`옛날 프로필 이미지 ${reqJson.profileOld} 삭제`);
           await sftp.delete(oldProfilePath);
         }
       }
+
       sftp.end();
-      const connection = db();
-      connection.query(query.updatePageTem(queryParse.singleQuiteParse(reqJson)), (error, rows) => {
-        if (error) {
-          throw error;
-        }
-      });
+      const connection = await dbPool.getConnection();
+      await connection.query(query.updatePageTem(queryParse.singleQuiteParse(reqJson)))
       for (let i = 0; i < reqJson.workList.length; i++) {
-        connection.query(query.updateWorkOrder2(reqJson.workList[i], i), (error, rows) => {
-          if (error) {
-            throw error;
-          }
-        });
+        await connection.query(query.updateWorkOrder2(reqJson.workList[i], i));
       }
-      connection.end();
-      logger.info(`updatePageTem : ${reqJson.userId}, ${reqJson.ptId}`);
+      connection.release();
       res.status(200).send({
         response: {
-          code: 200,
-          response: {
-            // profileImg,
-            // thumbnailImg,
-          },
+          // profileImg,
+          // thumbnailImg,
         },
       });
-    } catch (error) {
-      logger.error('updatePageTem error :', error);
+      logger.info(`updatePageTem : ${reqJson.userId}, ${reqJson.ptId}`);
+    } catch (err) {
       res.status(500).json({
-        code: 500,
-        status: 'Internal Server Error',
         message: 'updatePageTem error : 내부 서버 오류가 발생했습니다.',
         timestamp: new Date(),
       });
+      logger.error('updatePageTem error :', err);
     }
   },
   addOrUpdateWork: async (req, res) => {
@@ -212,27 +143,17 @@ const siteCtrl = {
       if (reqJson.state === '추가') {
         reqJson.src = String(reqJson.workId) + '_' + String(new Date().getTime());
         await sftp.mkdir(sourceDir + reqJson.src, true);
-        titleImg !== undefined &&
-          (await sftp.put(titleImg.buffer, sourceDir + reqJson.src + '/' + reqJson.logo));
+        titleImg && (await sftp.put(titleImg.buffer, sourceDir + reqJson.src + '/' + reqJson.logo));
         await sftp.put(posterImg.buffer, sourceDir + reqJson.src + '/' + reqJson.poster);
         sftp.end();
-        const connection = db();
-        connection.query(query.seletWorkOrder(reqJson), (error, rows) => {
-          if (error) {
-            throw error;
-          }
-          reqJson.order = rows[0]['max_order'];
-          connection.query(query.addWork(queryParse.singleQuiteParse(reqJson)), (error, rows) => {
-            if (error) {
-              throw error;
-            }
-            connection.end();
-            reqJson.workSeq = rows.insertId;
-            logger.info(`addOrUpdateWork_추가 : ${reqJson.userId}, ${reqJson.ptId}`);
-            res.status(200).send({
-              response: reqJson,
-            });
-          });
+        const connection = await dbPool.getConnection();
+        const [rows, error] = await connection.query(query.seletWorkOrder(reqJson))
+        reqJson.order = rows[0]['max_order'];
+        const [rows2, error2] = await connection.query(query.addWork(queryParse.singleQuiteParse(reqJson)))
+        connection.release();
+        reqJson.workSeq = rows2.insertId;
+        res.status(200).send({
+          response: reqJson,
         });
       } else if (reqJson.state === '수정') {
         if (reqJson.posterImgOld !== decodeURIComponent(posterImg.originalname)) {
@@ -242,7 +163,7 @@ const siteCtrl = {
             sourceDir + reqJson.src + '/' + decodeURIComponent(posterImg.originalname)
           );
         }
-        if (titleImg === undefined) {
+        if (!titleImg) {
           if (reqJson.titleImgOld !== 'none') {
             await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.titleImgOld}`);
           }
@@ -263,26 +184,20 @@ const siteCtrl = {
           }
         }
         sftp.end();
-        const connection = db();
-        connection.query(query.updateWork(queryParse.singleQuiteParse(reqJson)), (error, rows) => {
-          if (error) {
-            throw error;
-          }
-          connection.end();
-          logger.info(`addOrUpdateWork_수정 : ${reqJson.userId}, ${reqJson.ptId}`);
-          res.status(200).send({
-            response: reqJson,
-          });
+        const connection = await dbPool.getConnection();
+        await connection.query(query.updateWork(queryParse.singleQuiteParse(reqJson)))
+        connection.release();
+        res.status(200).send({
+          response: reqJson,
         });
       }
-    } catch (error) {
-      logger.error('addOrUpdateWork error :', error);
+      logger.info(`addOrUpdateWork ${reqJson.state} : ${reqJson.userId}, ${reqJson.ptId}`);
+    } catch (err) {
       res.status(500).json({
-        code: 500,
-        status: 'Internal Server Error',
         message: 'addOrUpdateWork error : 내부 서버 오류가 발생했습니다.',
         timestamp: new Date(),
       });
+      logger.error('addOrUpdateWork error :', err);
     }
   },
 };

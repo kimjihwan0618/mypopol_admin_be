@@ -1,12 +1,11 @@
 const root = require.main.path;
 const path = require('path');
 const log4js = require('log4js');
-const db = require(path.join(root, 'config/db.config'));
+const dbPool = require(path.join(root, 'config/db.config'));
 const nodemailer = require('nodemailer');
 const query = require(path.join(root, 'query/auth'));
 const jwt = require('jsonwebtoken');
 const queryParse = require(path.join(root, 'utills/queryParse'));
-const getErrorCode = require(path.join(root, 'utills/getErrCode'));
 const emailAuth = require(path.join(root, 'config/mail.config'));
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
@@ -14,44 +13,39 @@ log4js.configure(log4jsConfig);
 
 const dbCtrl = {
   postSignIn: async (req, res) => {
+    const connection = await dbPool.getConnection();
     try {
-      const connection = db();
-      connection.query(query.getUser(queryParse.singleQuiteParse(req.body)), (error, rows) => {
-        if (error) {
-          throw error;
-        }
-        if (rows.length === 1) {
-          const user = {
-            userKey: `${rows[0].userKey}`,
-            userId: `${rows[0].userId}`,
-            username: `${rows[0].userName}`,
-            roleId: `${rows[0].roleId}`,
-            role: `${rows[0].roleName}`,
-          };
-          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' });
-          // 개발 중에만 jwt 유효기간 늘려놓음
-          res.cookie('token', token, { httpOnly: true });
-          res.status(200).send({
-            response: {
-              ...{
-                accessToken: token,
-                tokenExpiresIn: new Date().getTime(),
-              },
-              ...user,
+      const [users, error] = await connection.query(query.getUser(queryParse.singleQuiteParse(req.body)));
+      if (users.length === 1) {
+        const user = {
+          userKey: `${users[0].userKey}`,
+          userId: `${users[0].userId}`,
+          username: `${users[0].userName}`,
+          roleId: `${users[0].roleId}`,
+          role: `${users[0].roleName}`,
+        };
+        const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
+        res.cookie('token', token, { httpOnly: true });
+        res.status(200).send({
+          response: {
+            ...{
+              accessToken: token,
+              tokenExpiresIn: new Date().getTime(),
             },
-          });
-          logger.info(`유저가 로그인하였습니다. : ${rows[0].userId}`);
-        } else {
-          res.status(401).json({
-            message: '일치하는 유저 정보가 없습니다.',
-            timestamp: new Date(),
-          });
-        }
-        connection.end();
-      });
+            ...user,
+          },
+        });
+        logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
+      } else {
+        res.status(401).json({
+          message: '일치하는 유저 정보가 없습니다.',
+          timestamp: new Date(),
+        });
+      }
+      connection.release();
     } catch (err) {
       logger.error('signIn 에러 : ', err);
-      res.status(getErrorCode(err)).json({
+      res.status(500).json({
         message: 'signIn 애러',
         timestamp: new Date(),
       });
@@ -75,10 +69,10 @@ const dbCtrl = {
           ...decodedToken,
         },
       });
-      logger.info(`jwt 토큰을 발급하였습니다 : ${rows[0].userId}`);
+      // logger.info(`jwt 토큰을 발급하였습니다 : ${rows[0].userId}`);
     } catch (err) {
       logger.error('accessToken 에러 : ', err);
-      res.status(getErrorCode(err)).json({
+      res.status(500).json({
         message: 'accessToken 에러',
         timestamp: new Date(),
       });
@@ -122,23 +116,28 @@ const dbCtrl = {
       });
     } catch (err) {
       logger.error('signCodePub 에러 : ', err);
-      res.status(getErrorCode(err)).send({
+      res.status(500).json({
         message: 'signCodePub 에러',
         timestamp: new Date(),
       });
     }
   },
   getUser: async (req, res) => {
-    const connection = db();
-    connection.query(query.getUser(queryParse.singleQuiteParse(req.query)), (error, rows) => {
-      if (error) {
-        throw error;
-      }
+    const connection = await dbPool.getConnection();
+    try {
+      const [users, error] = await connection.query(query.getUser(queryParse.singleQuiteParse(req.query)));
       res.status(200).send({
-        users: rows,
+        users,
       });
-      connection.end();
-    });
+    } catch (err) {
+      logger.error('getUser 에러 : ', err);
+      res.status(500).send({
+        message: 'getUser 에러',
+        timestamp: new Date(),
+      });
+    } finally {
+      connection.release();
+    }
   }
 };
 

@@ -1,52 +1,40 @@
 const root = require.main.path;
 const path = require('path');
 const log4js = require('log4js');
-const db = require(path.join(root, 'config/db.config'));
+const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/site'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
-const getErrorCode = require(path.join(root, 'utills/getErrCode'));
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
 const siteCtrl = {
   postPopolInfo: async (req, res) => {
+    const connection = await dbPool.getConnection();
     try {
-      const connection = db();
       req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       if (req.body.countFlag) {
-        connection.query(query.addVisterCount(req.body), (error, res) => {
-          if (error) {
-            throw error;
-          }
-        });
+        await connection.query(query.addVisterCount(req.body));
       }
-      connection.query(
-        query.getPopolInfo(queryParse.singleQuiteParse(req.body)),
-        (error, rows1) => {
-          if (error) {
-            throw error;
-          }
-          if (rows1.length === 1) {
-            connection.query(query.getWorks(rows1[0].popolSeq), (error, rows2) => {
-              logger.info(`postPopolInfo : ${req.body.userId}`);
-              res.status(200).send({
-                response: {
-                  popolInfo: rows1[0],
-                  worksInfo: rows2,
-                },
-              });
-            });
-          }
-          connection.end();
-        }
-      );
-    } catch (error) {
-      logger.error('postPopolInfo 에러 :', error);
-      res.status(getErrorCode(err)).json({
+      const [popols, error] = await connection.query(query.getPopolInfo(queryParse.singleQuiteParse(req.body)));
+      if (popols.length === 1) {
+        const [works, error2] = await connection.query(query.getWorks(popols[0].popolSeq));
+        res.status(200).send({
+          response: {
+            popolInfo: popols[0],
+            worksInfo: works,
+          },
+        });
+        logger.info(`postPopolInfo : ${req.body.userId}`);
+      }
+    } catch (err) {
+      res.status(500).json({
         message: 'postPopolInfo 에러',
         timestamp: new Date(),
       });
+      logger.error('postPopolInfo 에러 :', err);
+    } finally {
+      connection.release();
     }
   },
 };
