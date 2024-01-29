@@ -22,7 +22,7 @@ const siteCtrl = {
         template.vistedCount = visted[0].ct;
       }
       res.status(200).send(templates);
-      logger.info(`getPageTemList : ${template.userId}`);
+      logger.info(`getPageTemList : ${req.body.userKey}`);
     } catch (err) {
       res.status(500).json({
         message: 'getPageTemList error : 내부 서버 오류가 발생했습니다.',
@@ -37,17 +37,19 @@ const siteCtrl = {
     const connection = await dbPool.getConnection();
     await sftp.connect(sftpConfig);
     try {
-      await sftp.rmdir(`/web/site/${req.body.ptId}/${req.body.userId}/img/${req.body.src}`, true);
+      const params = req.query;
+      const { ptId, userId, src, popolSeq, workSeq } = params;
+      await sftp.rmdir(`/web/site/${ptId}/${userId}/img/${src}`, true);
       sftp.end();
       await connection.beginTransaction();
-      await connection.query(query.deleteWork(req.body))
-      await connection.query(query.updateWorkOrder(req.body))
+      await connection.query(query.deleteWork(params))
+      await connection.query(query.updateWorkOrder(params))
       await connection.commit();
-      const [rows, error] = await connection.query(query2.getWorks(req.body.popolSeq))
+      const [rows, error] = await connection.query(query2.getWorks(popolSeq))
       res.status(200).send({
         response: rows,
       });
-      logger.info(`deleteWork userId : ${req.body.userId}, workId : ${req.body.workSeq}`);
+      logger.info(`deleteWork userId : ${userId}, workId : ${workSeq}`);
     } catch (err) {
       res.status(500).json({
         message: 'deleteWork error : 내부 서버 오류가 발생했습니다.',
