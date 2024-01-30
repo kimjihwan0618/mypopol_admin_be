@@ -15,7 +15,9 @@ const dbCtrl = {
   postSignIn: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const [users, error] = await connection.query(query.getUser(queryParse.singleQuiteParse(req.body)));
+      const [users, error] = await connection.query(
+        query.getUser(queryParse.singleQuiteParse(req.body))
+      );
       if (users.length === 1) {
         const user = {
           userKey: `${users[0].userKey}`,
@@ -125,7 +127,9 @@ const dbCtrl = {
   getUser: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const [users, error] = await connection.query(query.getUser(queryParse.singleQuiteParse(req.query)));
+      const [users, error] = await connection.query(
+        query.getUser(queryParse.singleQuiteParse(req.query))
+      );
       res.status(200).send({
         users,
       });
@@ -138,7 +142,20 @@ const dbCtrl = {
     } finally {
       connection.release();
     }
-  }
+  },
+  postSignupUser: async (req, res) => {
+    const connection = await dbPool.getConnection();
+    try {
+    } catch (err) {
+      logger.error('postSignupUser 에러 : ', err);
+      res.status(500).send({
+        message: 'postSignupUser 에러',
+        timestamp: new Date(),
+      });
+    } finally {
+      connection.release();
+    }
+  },
 };
 
 module.exports = dbCtrl;

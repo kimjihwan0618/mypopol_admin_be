@@ -36,9 +36,11 @@ app.listen(port, () => {
   logger.info('My Popol API 서버가 시작되었습니다.', port);
 });
 
-// api ctrl
+// 사용자 페이지 api
 app.use('/email', require('./routes/emailRouter'));
-app.use('/auth', require('./routes/authRouter'));
-app.use('/common', require('./routes/commonRouter'));
 app.use('/site', require('./routes/siteRouter'));
+
+// 관리자 페이지 api
+app.use('/common', require('./routes/commonRouter'));
+app.use('/auth', require('./routes/authRouter'));
 app.use('/templateManage', require('./routes/templatemanageRouter'));
