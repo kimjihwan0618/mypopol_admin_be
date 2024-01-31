@@ -53,7 +53,7 @@ const dbCtrl = {
       });
     }
   },
-  postAccessToken: async (req, res) => {
+  putAccessToken: async (req, res) => {
     try {
       const token = req.headers.authorization.split(' ')[1];
       const decodedToken = jwt.verify(token, 'my_secret_key');
@@ -143,10 +143,18 @@ const dbCtrl = {
       connection.release();
     }
   },
-  postSignupUser: async (req, res) => {
+  postUser: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
+      await connection.beginTransaction(); // 트랜잭션 시작
+      await connection.query(query.postUser(req.body));
+      await connection.query(query.postPopol(req.body)); //
+      await connection.commit() // 트랜잭션 커밋
+      res.status(200).send({
+        data: "굿"
+      });
     } catch (err) {
+      await connection.rollback();
       logger.error('postSignupUser 에러 : ', err);
       res.status(500).send({
         message: 'postSignupUser 에러',

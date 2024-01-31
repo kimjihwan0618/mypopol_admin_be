@@ -16,13 +16,13 @@ const siteCtrl = {
   getPageTemList: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const [templates, error] = await connection.query(query.getPageTemList(queryParse.singleQuiteParse(req.body)))
+      const [templates, error] = await connection.query(query.getPageTemList(queryParse.singleQuiteParse(req.query)))
       for (let template of templates) {
         const [visted, error2] = await connection.query(query.getPageVistedCt(template))
         template.vistedCount = visted[0].ct;
       }
       res.status(200).send(templates);
-      logger.info(`getPageTemList : ${req.body.userKey}`);
+      logger.info(`getPageTemList : ${req.query.userKey}`);
     } catch (err) {
       res.status(500).json({
         message: 'getPageTemList error : 내부 서버 오류가 발생했습니다.',
@@ -51,6 +51,7 @@ const siteCtrl = {
       });
       logger.info(`deleteWork userId : ${userId}, workId : ${workSeq}`);
     } catch (err) {
+      await connection.rollback();
       res.status(500).json({
         message: 'deleteWork error : 내부 서버 오류가 발생했습니다.',
         timestamp: new Date(),

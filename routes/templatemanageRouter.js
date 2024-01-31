@@ -2,8 +2,8 @@ const pageTemManageCtrl = require('../controllers/templateManage/pageCtrl');
 const router = require('express').Router();
 
 // page
-router.route('/post/page/list').post(pageTemManageCtrl.getPageTemList);
-router.route('/post/page/update').post(pageTemManageCtrl.updatePageTem);
+router.route('/get/page/list').get(pageTemManageCtrl.getPageTemList);
+router.route('/put/page/update').put(pageTemManageCtrl.updatePageTem);
 
 // work
 router.route('/post/page/work/add-update').post(pageTemManageCtrl.addOrUpdateWork);

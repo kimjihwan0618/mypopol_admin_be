@@ -1,5 +1,5 @@
 const site = {
-  getPopolInfo: (param) => {
+  getPopolInfo: (params) => {
     return `
     SELECT 
     A.* ,
@@ -9,8 +9,8 @@ const site = {
     ON 1=1
     AND A.userKey = B.userKey
     WHERE 1=1
-    AND B.userId = '${param.userId}'
-    AND A.ptId = '${param.ptId}'
+    AND B.userId = '${params.userId}'
+    AND A.ptId = '${params.ptId}'
   `;
   },
   getWorks: (popolSeq) => {
@@ -21,10 +21,10 @@ const site = {
     ORDER BY workId, ${"`order`"}
     `
   },
-  addVisterCount: (param) => {
+  addVisterCount: (params) => {
     return `
       INSERT INTO user_daily_visted (userId, ptId, userIp, vistedTime) 
-      VALUES ('${param.userId}', '${param.ptId}', '${param.userIp}' , NOW());
+      VALUES ('${params.userId}', '${params.ptId}', '${params.userIp}' , NOW());
     `
   }
 };
