@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no" />
+  <meta name="keywords" content="웹툰작가, 디자이너, 프리랜서, 디자인, 의뢰, 웹툰, 포트폴리오, 아카이빙, 홈페이지, 웹사이트, 작가" />
+  <meta property="og:type" content="website" />
+  <meta name="description" content="안녕하세요. MyPopol 작업물 아카이빙입니다." />
+  <meta property="og:description" content="안녕하세요. MyPopol 작업물 아카이빙입니다." />
+  <meta property="og:locale" content="en_US" />
+  <link rel="shortcut icon" href="https://site.mypopol.com/src/img/favicon/favicon.ico" />
+</head>
+
+<body>
+  <div class="loadingWrap pencil">
+    <div class="bg"></div>
+    <lottie-player src="https://site.mypopol.com/src/img/ptid01/pitd01_lottie.json" background="transparent" speed="1"
+      style="width: 400px; height: 400px" loop autoplay></lottie-player>
+  </div>
+  <div class="loadingWrap email open">
+    <div class="bg"></div>
+    <lottie-player src="https://site.mypopol.com/src/img/ptid01/pitd01_lottie.json" background="transparent" speed="1"
+      style="width: 400px; height: 400px" loop autoplay></lottie-player>
+  </div>
+  <!-- Caribo 전용 카드 템플릿 -->
+  <!-- <div id="messageCard">
+      <span></span>
+      <p class="f__tb"></p>
+    </div> -->
+  <!-- Caribo 전용 카드 템플릿 -->
+  <nav>
+    <ul>
+      <li class="on">
+        <span class="icon"></span>
+        <span>
+          <p class="f__tb">프로필</p>
+        </span>
+      </li>
+    </ul>
+  </nav>
+  <!-- 요소 숨김 -->
+  <!--  -->
+  <main id="main" class="scroll">
+    <div class="inner">
+      <!-- 프로필 -->
+      <section class="s1 on">
+        <span class="bg"></span>
+        <div class="inner">
+          <div class="wrap">
+            <dl>
+              <dt>
+                <span class="profile__img">
+                  <img id="profileImg" alt="프로필 이미지" />
+                </span>
+              </dt>
+              <dd id="titleTxt" class="f__tb"></dd>
+            </dl>
+            <ul id="userInfoList">
+              <li class="phone">
+                <span id="phoneCopyBtn">
+                  <dl>
+                    <dt>
+                      <img id="phoneIcon" alt="핸드폰" />
+                    </dt>
+                    <dd class="f__tb"></dd>
+                  </dl>
+                </span>
+              </li>
+              <li class="email">
+                <span id="mailCopyBtn">
+                  <dl>
+                    <dt>
+                      <img id="emailIcon" alt="메일" />
+                    </dt>
+                    <dd class="f__tb"></dd>
+                  </dl>
+                </span>
+              </li>
+            </ul>
+          </div>
+          <span id="scrollArrow">
+            <em class="arrow-icon"></em>
+            <em class="arrow-icon"></em>z
+          </span>
+        </div>
+      </section>
+      <!-- // 프로필 -->
+    </div>
+  </main>
+  <script src="./userInfo.js"></script>
+  <script src="https://site.mypopol.com/ptid01/src/js/jquery.min.js"></script>
+  <script src="https://site.mypopol.com/ptid01/src/js/lottie.js"></script>
+  <script src="https://site.mypopol.com/ptid01/src/js/jquery.smoothwheel.js"></script>
+  <link rel="stylesheet" href="https://site.mypopol.com/ptid01/src/css/styles.css" />
+  <script src="https://site.mypopol.com/ptid01/src/js/main.js"></script>
+  <script src="https://site.mypopol.com/ptid01/src/js/init.js"></script>
+  <!-- <script src="./js/init2.js"></script> -->
+</body>
+
+</html>
