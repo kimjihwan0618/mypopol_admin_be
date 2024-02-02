@@ -81,41 +81,49 @@ const dbCtrl = {
     }
   },
   postAuthCode: async (req, res) => {
+    const connection = await dbPool.getConnection();
     try {
-      const { email } = req.body;
-      const authKey = String(new Date().getTime()).slice(-8);
-      const transporter = nodemailer.createTransport({
-        host: emailAuth.host,
-        port: 465,
-        secure: true,
-        auth: {
-          user: emailAuth.user,
-          pass: emailAuth.pass,
-        },
-      });
-      const mailOptions = {
-        from: emailAuth.user,
-        to: email,
-        subject: `[마이포폴]계정생성 인증코드 발급`,
-        html: `
-        <p>안녕하세요 마이포폴입니다.</p>
-        <br />
-        <p>화면에서 인증코드를 입력해주세요</p>
-        <br />
-        <br />
-        <p style="font-weight: bold;">인증코드 : ${authKey}</p>
-        `,
-      };
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          logger.error(`signCodePub send error : ${error}`);
-        } else {
-          logger.info(`회원가입을 위한 본인 인증번호를 발급하였습니다. ${email}`);
-        }
-      });
-      res.status(200).send({
-        authKey,
-      });
+      const { userEmail } = req.body;
+      const [users, error] = await connection.query(
+        query.getUser(queryParse.singleQuiteParse(req.body))
+      );
+      if (users.length > 0) {
+        res.status(200).send(false);
+      } else {
+        const authKey = String(new Date().getTime()).slice(-8);
+        const transporter = nodemailer.createTransport({
+          host: emailAuth.host,
+          port: 465,
+          secure: true,
+          auth: {
+            user: emailAuth.user,
+            pass: emailAuth.pass,
+          },
+        });
+        const mailOptions = {
+          from: emailAuth.user,
+          to: userEmail,
+          subject: `[마이포폴]계정생성 인증코드 발급`,
+          html: `
+          <p>안녕하세요 마이포폴입니다.</p>
+          <br />
+          <p>화면에서 인증코드를 입력해주세요</p>
+          <br />
+          <br />
+          <p style="font-weight: bold;">인증코드 : ${authKey}</p>
+          `,
+        };
+        transporter.sendMail(mailOptions, function (error, info) {
+          if (error) {
+            logger.error(`signCodePub send error : ${error}`);
+          } else {
+            logger.info(`회원가입을 위한 본인 인증번호를 발급하였습니다. ${userEmail}`);
+          }
+        });
+        res.status(200).send({
+          authKey,
+        });
+      }
     } catch (err) {
       logger.error('signCodePub 에러 : ', err);
       res.status(500).json({
@@ -130,9 +138,7 @@ const dbCtrl = {
       const [users, error] = await connection.query(
         query.getUser(queryParse.singleQuiteParse(req.query))
       );
-      res.status(200).send({
-        users,
-      });
+      res.send(users.length > 0 ? false : true);
     } catch (err) {
       logger.error('getUser 에러 : ', err);
       res.status(500).send({
@@ -146,12 +152,12 @@ const dbCtrl = {
   postUser: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      await connection.beginTransaction(); // 트랜잭션 시작
+      await connection.beginTransaction();
       await connection.query(query.postUser(req.body));
-      await connection.query(query.postPopol(req.body)); //
-      await connection.commit() // 트랜잭션 커밋
+      await connection.query(query.postPopol(req.body));
+      await connection.commit()
       res.status(200).send({
-        data: "굿"
+        // 유저발급키 생성후 바로 로그인 넘어갈지 검토
       });
     } catch (err) {
       await connection.rollback();

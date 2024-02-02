@@ -14,31 +14,44 @@ const auth = {
       WHERE 1=1
       ${params.hasOwnProperty('userKey') ? `AND userKey = '${params.userKey}'` : ""}
       ${params.hasOwnProperty('password') ? `AND password = '${params.password}'` : ""}
-      AND userId = '${params.userId}'
+      ${params.hasOwnProperty('userId') ? `AND password = '${params.userId}'` : ""}
+      ${params.hasOwnProperty('userEmail') ?
+        `AND authValue = '${params.userEmail}'`
+        : ""}
+      ${params.hasOwnProperty('userPhone') ?
+        `AND authValue = '${params.userPhone}'`
+        : ""}
     `
   },
   postUser: (params) => {
     return `
       INSERT INTO users 
-      (userKey, userId, password, userName, roleId)
-      VALUES ('${params.userKey}', '${params.userId}', '${params.password}', '${params.userName}', 1)
+      (userKey, userId, password, userName, roleId, authType, authValue)
+      VALUES ('${params.userKey}', 
+      '${params.userId}', 
+      '${params.password}', 
+      '${params.userName}', 
+      1,
+      '${params.authType}', 
+      '${params.authValue}')
     `
   },
   postPopol: (params) => {
     return `
       INSERT INTO popols 
-      (popolName, userKey, ptId, phone, email, title, icon, mainColor, usedDay, status)
+      (popolName, userKey, ptId, phone, email, title, icon, mainColor, renewalDate, lastUpdated, usedDay, status)
       VALUES ('${params.popolName}', 
       '${params.userKey}', 
       '${params.templateId}', 
-      '010-0000-0000',
-      'wlghks0106@naver.com',
+      '${params.phone}',
+      '${params.email}',
       '${params.title}',
-      'bite',
+      'default',
       'rgb(255, 182, 59)',
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP,
       0,
-      'Y'
-      )
+      'Y')
     `
   },
 }
