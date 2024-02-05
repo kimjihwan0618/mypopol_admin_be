@@ -33,14 +33,12 @@ const dbCtrl = {
         const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
         res.cookie('token', token, { httpOnly: true });
         res.status(200).send({
-          response: {
-            ...{
-              accessToken: token,
-              tokenExpiresIn: new Date().getTime(),
-            },
-            ...user,
+          ...{
+            accessToken: token,
+            tokenExpiresIn: new Date().getTime(),
           },
-        });
+          ...user,
+        },);
         logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
       } else {
         res.status(204).json({
