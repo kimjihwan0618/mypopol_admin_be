@@ -16,9 +16,11 @@ const pageCtrl = {
   getPageTemList: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const [templates, error] = await connection.query(query.getPageTemList(queryParse.singleQuiteParse(req.query)))
+      const [templates, error] = await connection.query(
+        query.getPageTemList(queryParse.singleQuiteParse(req.query))
+      );
       for (let template of templates) {
-        const [visted, error2] = await connection.query(query.getPageVistedCt(template))
+        const [visted, error2] = await connection.query(query.getPageVistedCt(template));
         template.vistedCount = visted[0].ct;
       }
       res.status(200).send(templates);
@@ -40,12 +42,11 @@ const pageCtrl = {
       const params = req.query;
       const { ptId, userId, src, popolSeq, workSeq } = params;
       await sftp.rmdir(`/web/site/${ptId}/${userId}/img/${src}`, true);
-      sftp.end();
       await connection.beginTransaction();
-      await connection.query(query.deleteWork(params))
-      await connection.query(query.updateWorkOrder(params))
+      await connection.query(query.deleteWork(params));
+      await connection.query(query.updateWorkOrder(params));
       await connection.commit();
-      const [rows, error] = await connection.query(query2.getWorks(popolSeq))
+      const [rows, error] = await connection.query(query2.getWorks(popolSeq));
       res.status(200).send({
         response: rows,
       });
@@ -58,6 +59,7 @@ const pageCtrl = {
       });
       logger.error('deleteWork error :', err);
     } finally {
+      sftp.end();
       connection.release();
     }
   },
@@ -80,7 +82,9 @@ const pageCtrl = {
       const oldThumbnailPath = `${sourceDir}/${reqJson.thumbnailOld}`;
       const oldProfilePath = `${sourceDir}/${reqJson.profileOld}`;
       const directoryList = await sftp.list(sourceDir);
-      const oldThumbnailExists = directoryList.some((file) => file.name === `${reqJson.thumbnailOld}`);
+      const oldThumbnailExists = directoryList.some(
+        (file) => file.name === `${reqJson.thumbnailOld}`
+      );
       const oldProfileExists = directoryList.some((file) => file.name === `${reqJson.profileOld}`);
 
       if (thumbnailImgPath) {
@@ -113,13 +117,11 @@ const pageCtrl = {
         }
       }
 
-      sftp.end();
       const connection = await dbPool.getConnection();
-      await connection.query(query.updatePageTem(queryParse.singleQuiteParse(reqJson)))
+      await connection.query(query.updatePageTem(queryParse.singleQuiteParse(reqJson)));
       for (let i = 0; i < reqJson.workList.length; i++) {
         await connection.query(query.updateWorkOrder2(reqJson.workList[i], i));
       }
-      connection.release();
       res.status(200).send({
         response: {
           // profileImg,
@@ -133,6 +135,9 @@ const pageCtrl = {
         timestamp: new Date(),
       });
       logger.error('updatePageTem error :', err);
+    } finally {
+      sftp.end();
+      connection.release();
     }
   },
   addOrUpdateWork: async (req, res) => {
@@ -150,10 +155,11 @@ const pageCtrl = {
         await sftp.put(posterImg.buffer, sourceDir + reqJson.src + '/' + reqJson.poster);
         sftp.end();
         const connection = await dbPool.getConnection();
-        const [rows, error] = await connection.query(query.seletWorkOrder(reqJson))
+        const [rows, error] = await connection.query(query.seletWorkOrder(reqJson));
         reqJson.order = rows[0]['max_order'];
-        const [rows2, error2] = await connection.query(query.addWork(queryParse.singleQuiteParse(reqJson)))
-        connection.release();
+        const [rows2, error2] = await connection.query(
+          query.addWork(queryParse.singleQuiteParse(reqJson))
+        );
         reqJson.workSeq = rows2.insertId;
         res.status(200).send({
           response: reqJson,
@@ -186,9 +192,8 @@ const pageCtrl = {
             );
           }
         }
-        sftp.end();
         const connection = await dbPool.getConnection();
-        await connection.query(query.updateWork(queryParse.singleQuiteParse(reqJson)))
+        await connection.query(query.updateWork(queryParse.singleQuiteParse(reqJson)));
         connection.release();
         res.status(200).send({
           response: reqJson,
@@ -201,6 +206,9 @@ const pageCtrl = {
         timestamp: new Date(),
       });
       logger.error('addOrUpdateWork error :', err);
+    } finally {
+      sftp.end();
+      connection.release();
     }
   },
 };

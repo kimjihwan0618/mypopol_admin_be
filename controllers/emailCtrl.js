@@ -39,7 +39,6 @@ const emailCtrl = {
               if (error) {
                 throw error;
               }
-              connection.release();
               logger.info(`Mail Send -> From : ${from}, To : ${to}`);
             });
           }
@@ -52,6 +51,8 @@ const emailCtrl = {
         timestamp: new Date(),
       });
       logger.error('sendMail error : ', err);
+    } finally {
+      connection.release();
     }
   },
 };

@@ -38,7 +38,7 @@ const dbCtrl = {
             tokenExpiresIn: new Date().getTime(),
           },
           ...user,
-        },);
+        });
         logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
       } else {
         res.status(204).json({
@@ -46,13 +46,14 @@ const dbCtrl = {
           timestamp: new Date(),
         });
       }
-      connection.release();
     } catch (err) {
       logger.error('signIn 에러 : ', err);
       res.status(500).json({
         message: 'signIn 애러',
         timestamp: new Date(),
       });
+    } finally {
+      connection.release();
     }
   },
   putAccessToken: async (req, res) => {
@@ -61,8 +62,7 @@ const dbCtrl = {
       const decodedToken = jwt.verify(token, 'my_secret_key');
       delete decodedToken.iat;
       delete decodedToken.exp;
-      const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '120m' });
-      // 개발 중에만 jwt 유효기간 늘려놓음
+      const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
       res.cookie('token', refreshToken, { httpOnly: true });
       res.status(200).send({
         ...{
@@ -71,7 +71,7 @@ const dbCtrl = {
         },
         ...decodedToken,
       });
-      // logger.info(`jwt 토큰을 발급하였습니다 : ${rows[0].userId}`);
+      logger.info(`jwt 토큰을 발급하였습니다 : ${decodedToken}`);
     } catch (err) {
       logger.error('accessToken 에러 : ', err);
       res.status(500).json({
@@ -152,22 +152,22 @@ const dbCtrl = {
   postUser: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { templateId, userId } = req.body;
+      const { templateId, userId, userName, userKey } = req.body;
       await connection.beginTransaction();
       await connection.query(query.postUser(req.body));
       await connection.query(query.postPopol(req.body));
-      const template_def_src = `/web/site/${templateId}`;
       await sftp.connect(sftpConfig);
+      const template_def_src = `/web/site/${templateId}`;
       await sftp.mkdir(`${template_def_src}/${userId}`, true);
       const fileList = await sftp.list(`${template_def_src}/example`);
       for (const file of fileList) {
-        if (file.type !== 'd') { // 파일 타입 폴더 아닐시만 복사
-          const sourcePath = `${template_def_src}/example/${file.name}`
-          const destinationPath = `${template_def_src}/${userId}/${file.name}`
+        if (file.type !== 'd') {
+          const sourcePath = `${template_def_src}/example/${file.name}`;
+          const destinationPath = `${template_def_src}/${userId}/${file.name}`;
           const copy = await sftp.get(sourcePath);
           if (path.extname(file.name) === '.js') {
-            const userInput = copy.toString().split("\n");
-            userInput[0] = `const userId = '${userId}';`
+            const userInput = copy.toString().split('\n');
+            userInput[0] = `const userId = '${userId}';`;
             await sftp.put(Buffer.from(userInput.join('\n')), destinationPath);
           } else {
             await sftp.put(copy, destinationPath);
@@ -175,10 +175,23 @@ const dbCtrl = {
         }
       }
       await connection.commit();
+      const user = {
+        userKey: `${userKey}`,
+        userId: `${userId}`,
+        username: `${userName}`,
+        roleId: `2`, // 회원가입시 기본 유저 생성
+        role: `FREE`,
+      };
+      const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
+      res.cookie('token', token, { httpOnly: true });
       res.status(200).send({
-        // 유저발급키 생성후 바로 로그인 넘어갈지 검토
+        ...{
+          accessToken: token,
+          tokenExpiresIn: new Date().getTime(),
+        },
+        ...user,
       });
-
+      logger.info(`유저가 로그인하였습니다. : ${userId}`);
     } catch (err) {
       await connection.rollback();
       logger.error('postSignupUser 에러 : ', err);
@@ -187,6 +200,7 @@ const dbCtrl = {
         timestamp: new Date(),
       });
     } finally {
+      sftp.end();
       connection.release();
     }
   },
