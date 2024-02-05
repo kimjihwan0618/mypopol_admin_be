@@ -31,7 +31,7 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(upload);
 
-const port = 3000;
+const port = 3001;
 app.listen(port, () => {
   logger.info('My Popol API 서버가 시작되었습니다.', port);
 });

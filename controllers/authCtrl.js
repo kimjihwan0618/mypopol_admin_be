@@ -1,6 +1,7 @@
 const root = require.main.path;
 const path = require('path');
 const log4js = require('log4js');
+const fs = require('fs').promises;
 const Client = require('ssh2-sftp-client');
 const sftp = new Client();
 const sftpConfig = require(path.join(root, 'config/sftp.config'));
@@ -42,7 +43,7 @@ const dbCtrl = {
         });
         logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
       } else {
-        res.status(401).json({
+        res.status(204).json({
           message: '일치하는 유저 정보가 없습니다.',
           timestamp: new Date(),
         });
@@ -66,13 +67,11 @@ const dbCtrl = {
       // 개발 중에만 jwt 유효기간 늘려놓음
       res.cookie('token', refreshToken, { httpOnly: true });
       res.status(200).send({
-        response: {
-          ...{
-            accessToken: refreshToken,
-            tokenExpiresIn: new Date().getTime(),
-          },
-          ...decodedToken,
+        ...{
+          accessToken: refreshToken,
+          tokenExpiresIn: new Date().getTime(),
         },
+        ...decodedToken,
       });
       // logger.info(`jwt 토큰을 발급하였습니다 : ${rows[0].userId}`);
     } catch (err) {
@@ -159,29 +158,29 @@ const dbCtrl = {
       await connection.beginTransaction();
       await connection.query(query.postUser(req.body));
       await connection.query(query.postPopol(req.body));
-      await sftp.connect(sftpConfig);
       const template_def_src = `/web/site/${templateId}`;
+      await sftp.connect(sftpConfig);
       await sftp.mkdir(`${template_def_src}/${userId}`, true);
       const fileList = await sftp.list(`${template_def_src}/example`);
       for (const file of fileList) {
         if (file.type !== 'd') { // 파일 타입 폴더 아닐시만 복사
           const sourcePath = `${template_def_src}/example/${file.name}`
           const destinationPath = `${template_def_src}/${userId}/${file.name}`
+          const copy = await sftp.get(sourcePath);
           if (path.extname(file.name) === '.js') {
-            await userInfoFileWrite(sourcePath, destinaztionPath, userId);
-            console.log(`${file.name} 파일이 수정되었습니다.`);
+            const userInput = copy.toString().split("\n");
+            userInput[0] = `const userId = '${userId}';`
+            await sftp.put(Buffer.from(userInput.join('\n')), destinationPath);
           } else {
-            const fileContent = await sftp.fastGet(sourcePath, "utf-8");
-            await sftp.put(Buffer.from(fileContent), destinationPath); //파일 복사 
-
+            await sftp.put(copy, destinationPath);
           }
-          console.log(`${file.name} 파일이 복사되었습니다.`);
         }
       }
-
+      await connection.commit();
       res.status(200).send({
         // 유저발급키 생성후 바로 로그인 넘어갈지 검토
       });
+
     } catch (err) {
       await connection.rollback();
       logger.error('postSignupUser 에러 : ', err);
@@ -193,21 +192,6 @@ const dbCtrl = {
       connection.release();
     }
   },
-  userInfoFileWrite: async (sourcePath, destinationPath, userId) => {
-    try {
-      // 원격 서버의 파일 읽기
-      const fileContent = await sftp.get(sourcePath, null);
-
-      // 파일 내용 수정
-      const modifiedContent = fileContent.replace("const userId = 'example'", `const userId = '${userId}'`);
-
-      // 수정된 내용을 원격 서버의 파일에 쓰기
-      await sftp.put(Buffer.from(modifiedContent), destinationPath);
-    } catch (error) {
-      console.error('파일 수정 및 복사 중 에러 발생:', error);
-    }
-  },
-
 };
 
 module.exports = dbCtrl;

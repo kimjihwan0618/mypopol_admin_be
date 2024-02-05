@@ -14,7 +14,7 @@ const auth = {
       WHERE 1=1
       ${params.hasOwnProperty('userKey') ? `AND userKey = '${params.userKey}'` : ""}
       ${params.hasOwnProperty('password') ? `AND password = '${params.password}'` : ""}
-      ${params.hasOwnProperty('userId') ? `AND password = '${params.userId}'` : ""}
+      ${params.hasOwnProperty('userId') ? `AND userId = '${params.userId}'` : ""}
       ${params.hasOwnProperty('userEmail') ?
         `AND authValue = '${params.userEmail}'`
         : ""}
@@ -31,7 +31,7 @@ const auth = {
       '${params.userId}', 
       '${params.password}', 
       '${params.userName}', 
-      1,
+      2,
       '${params.authType}', 
       '${params.authValue}')
     `
@@ -39,8 +39,9 @@ const auth = {
   postPopol: (params) => {
     return `
       INSERT INTO popols 
-      (popolName, userKey, ptId, phone, email, title, icon, mainColor, renewalDate, lastUpdated, usedDay, status)
+      (popolName, fakeName, userKey, ptId, phone, email, title, icon, mainColor, renewalDate, lastUpdated, usedDay, status)
       VALUES ('${params.popolName}', 
+      '작가명', 
       '${params.userKey}', 
       '${params.templateId}', 
       '${params.phone}',

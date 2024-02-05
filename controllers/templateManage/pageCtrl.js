@@ -12,7 +12,7 @@ const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
-const siteCtrl = {
+const pageCtrl = {
   getPageTemList: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
@@ -205,4 +205,4 @@ const siteCtrl = {
   },
 };
 
-module.exports = siteCtrl;
+module.exports = pageCtrl;
