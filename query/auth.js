@@ -6,22 +6,21 @@ const auth = {
       A.userId,
       A.userName,
       B.roleId,
-      B.roleName
+      B.roleName,
+      A.authType,
+      A.authValue
       FROM users A
       LEFT JOIN roles B
       ON 1=1
       AND A.roleId = B.roleId
       WHERE 1=1
-      ${params.hasOwnProperty('userKey') ? `AND userKey = '${params.userKey}'` : ""}
-      ${params.hasOwnProperty('password') ? `AND password = '${params.password}'` : ""}
-      ${params.hasOwnProperty('userId') ? `AND userId = '${params.userId}'` : ""}
-      ${params.hasOwnProperty('userEmail') ?
-        `AND authValue = '${params.userEmail}'`
-        : ""}
-      ${params.hasOwnProperty('userPhone') ?
-        `AND authValue = '${params.userPhone}'`
-        : ""}
-    `
+      ${params.hasOwnProperty('userKey') ? `AND userKey = '${params.userKey}'` : ''}
+      ${params.hasOwnProperty('userName') ? `AND userName = '${params.userName}'` : ''}
+      ${params.hasOwnProperty('password') ? `AND password = '${params.password}'` : ''}
+      ${params.hasOwnProperty('userId') ? `AND userId = '${params.userId}'` : ''}
+      ${params.hasOwnProperty('userEmail') ? `AND authValue = '${params.userEmail}'` : ''}
+      ${params.hasOwnProperty('userPhone') ? `AND authValue = '${params.userPhone}'` : ''}
+    `;
   },
   postUser: (params) => {
     return `
@@ -34,7 +33,7 @@ const auth = {
       2,
       '${params.authType}', 
       '${params.authValue}')
-    `
+    `;
   },
   postPopol: (params) => {
     return `
@@ -53,8 +52,16 @@ const auth = {
       CURRENT_TIMESTAMP,
       0,
       'Y')
-    `
+    `;
   },
-}
+  updateUserPassword: (params) => {
+    return `
+      UPDATE users
+      SET password = '${params.password}'
+      WHERE 1=1
+      AND userId = '${params.userId}'
+    `;
+  },
+};
 
 module.exports = auth;

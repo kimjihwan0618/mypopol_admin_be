@@ -83,13 +83,11 @@ const dbCtrl = {
   postAuthCode: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { userEmail } = req.body;
+      const { forgotPw, userEmail } = req.body; // 비밀번호 찾기로 호출시 forgotPw = true
       const [users, error] = await connection.query(
         query.getUser(queryParse.singleQuiteParse(req.body))
       );
-      if (users.length > 0) {
-        res.status(200).send(false);
-      } else {
+      const handleAuthCodeIssuance = () => {
         const authKey = String(new Date().getTime()).slice(-8);
         const transporter = nodemailer.createTransport({
           host: emailAuth.host,
@@ -100,10 +98,11 @@ const dbCtrl = {
             pass: emailAuth.pass,
           },
         });
+        const authValue = userEmail ? userEmail : users[0].authValue;
         const mailOptions = {
           from: emailAuth.user,
-          to: userEmail,
-          subject: `[마이포폴]계정생성 인증코드 발급`,
+          to: authValue, // authValue 휴대폰 인증번호 발급 추가구현 필요
+          subject: `[마이포폴]${forgotPw ? '비밀번호 찾기' : '계정 생성'} 인증코드 발급`,
           html: `
           <p>안녕하세요 마이포폴입니다.</p>
           <br />
@@ -122,7 +121,14 @@ const dbCtrl = {
         });
         res.status(200).send({
           authKey,
+          ...(forgotPw && { authValue: users[0].authValue }),
+          ...(forgotPw && { authType: users[0].authType }),
         });
+      };
+      if (users.length > 0) {
+        forgotPw ? handleAuthCodeIssuance() : res.status(200).send(false);
+      } else {
+        forgotPw ? res.status(200).send(false) : handleAuthCodeIssuance();
       }
     } catch (err) {
       logger.error('signCodePub 에러 : ', err);
@@ -130,6 +136,8 @@ const dbCtrl = {
         message: 'signCodePub 에러',
         timestamp: new Date(),
       });
+    } finally {
+      connection.release();
     }
   },
   getUser: async (req, res) => {
@@ -197,6 +205,23 @@ const dbCtrl = {
       logger.error('postSignupUser 에러 : ', err);
       res.status(500).send({
         message: 'postSignupUser 에러',
+        timestamp: new Date(),
+      });
+    } finally {
+      sftp.end();
+      connection.release();
+    }
+  },
+  putUserPassword: async (req, res) => {
+    const connection = await dbPool.getConnection();
+    try {
+      await connection.query(query.updateUserPassword(req.body));
+      res.status(200).send(true);
+    } catch (err) {
+      await connection.rollback();
+      logger.error('putUserPassword 에러 : ', err);
+      res.status(500).send({
+        message: 'putUserPassword 에러',
         timestamp: new Date(),
       });
     } finally {
