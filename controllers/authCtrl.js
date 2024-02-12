@@ -25,7 +25,7 @@ const authCtrl = {
         },
         ...decodedToken,
       });
-      logger.info(`jwt 토큰을 발급하였습니다 : ${decodedToken}`);
+      logger.info(`jwt 토큰을 재발급하였습니다 : ${refreshToken}`);
     } catch (err) {
       logger.error('accessToken 에러 : ', err);
       res.status(500).json({

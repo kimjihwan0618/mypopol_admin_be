@@ -24,6 +24,7 @@ const corsOptions = {
     'http://127.0.0.1:5500',
   ],
 };
+// cors 허용 호스트
 
 const handleJwtCheck = (req, res, next) => {
   const authToken = req.headers.authorization;

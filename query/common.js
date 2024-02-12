@@ -5,6 +5,7 @@ const common = {
       A.userKey,
       A.userId,
       A.userName,
+      A.password,
       B.roleId,
       B.roleName,
       A.authType,
@@ -16,7 +17,7 @@ const common = {
       WHERE 1=1
       ${params.hasOwnProperty('userKey') ? `AND userKey = '${params.userKey}'` : ''}
       ${params.hasOwnProperty('userName') ? `AND userName = '${params.userName}'` : ''}
-      ${params.hasOwnProperty('password') ? `AND password = '${params.password}'` : ''}
+      ${params.hasOwnProperty('hashPassword') ? `AND password = '${params.hashPassword}'` : ''}
       ${params.hasOwnProperty('userId') ? `AND userId = '${params.userId}'` : ''}
       ${params.hasOwnProperty('userEmail') ? `AND authValue = '${params.userEmail}'` : ''}
       ${params.hasOwnProperty('userPhone') ? `AND authValue = '${params.userPhone}'` : ''}
@@ -28,7 +29,7 @@ const common = {
       (userKey, userId, password, userName, roleId, authType, authValue)
       VALUES ('${params.userKey}', 
       '${params.userId}', 
-      '${params.password}', 
+      '${params.hashPassword}', 
       '${params.userName}', 
       2,
       '${params.authType}', 
@@ -57,11 +58,11 @@ const common = {
   updateUserPassword: (params) => {
     return `
       UPDATE users
-      SET password = '${params.password}'
+      SET password = '${params.hashPassword}'
       WHERE 1=1
       AND userId = '${params.userId}'
     `;
-  },
+  }
 }
 
 module.exports = common;

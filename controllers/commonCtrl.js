@@ -6,6 +6,7 @@ const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/common'));
 const Client = require('ssh2-sftp-client');
 const sftp = new Client();
+const bcrypt = require('bcrypt');
 const sftpConfig = require(path.join(root, 'config/sftp.config'));
 const nodemailer = require('nodemailer');
 const queryParse = require(path.join(root, 'utills/queryParse'));
@@ -18,27 +19,35 @@ const commonCtrl = {
   postSignIn: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const [users, error] = await connection.query(
-        query.getUser(queryParse.singleQuiteParse(req.body))
-      );
+      const { password } = req.body;
+      const [users, error] = await connection.query(query.getUser(queryParse.singleQuiteParse(req.body)));
       if (users.length === 1) {
-        const user = {
-          userKey: `${users[0].userKey}`,
-          userId: `${users[0].userId}`,
-          username: `${users[0].userName}`,
-          roleId: `${users[0].roleId}`,
-          role: `${users[0].roleName}`,
-        };
-        const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
-        res.cookie('token', token, { httpOnly: true });
-        res.status(200).send({
-          ...{
-            accessToken: token,
-            tokenExpiresIn: new Date().getTime(),
-          },
-          ...user,
-        });
-        logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
+        const hashPassword = users[0].password;
+        const match = await bcrypt.compare(password, hashPassword);
+        if (match) {
+          const user = {
+            userKey: `${users[0].userKey}`,
+            userId: `${users[0].userId}`,
+            username: `${users[0].userName}`,
+            roleId: `${users[0].roleId}`,
+            role: `${users[0].roleName}`,
+          };
+          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
+          res.cookie('token', token, { httpOnly: true });
+          res.status(200).send({
+            ...{
+              accessToken: token,
+              tokenExpiresIn: new Date().getTime(),
+            },
+            ...user,
+          });
+          logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
+        } else {
+          res.status(204).json({
+            message: '일치하는 유저 정보가 없습니다.',
+            timestamp: new Date(),
+          });
+        }
       } else {
         res.status(204).json({
           message: '일치하는 유저 정보가 없습니다.',
@@ -48,7 +57,7 @@ const commonCtrl = {
     } catch (err) {
       logger.error('signIn 에러 : ', err);
       res.status(500).json({
-        message: 'signIn 애러',
+        message: '로그인 에러',
         timestamp: new Date(),
       });
     } finally {
@@ -135,7 +144,10 @@ const commonCtrl = {
   postUser: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { templateId, userId, userName, userKey } = req.body;
+      const { templateId, userId, userName, userKey, password } = req.body;
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(password, salt);
+      req.body.hashPassword = hash;
       await connection.beginTransaction();
       await connection.query(query.postUser(req.body));
       await connection.query(query.postPopol(req.body));
@@ -190,6 +202,10 @@ const commonCtrl = {
   putUserPassword: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
+      const { password } = req.body
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(password, salt);
+      req.body.hashPassword = hash;
       await connection.query(query.updateUserPassword(req.body));
       res.status(200).send(true);
     } catch (err) {
