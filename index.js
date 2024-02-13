@@ -32,10 +32,10 @@ const handleJwtCheck = (req, res, next) => {
     jwt.verify(authToken, 'my_secret_key');
     next();
   } catch (err) {
-    logger.error("handleJwtCheck 에러 : ", err)
+    logger.error('handleJwtCheck 에러 : ', err);
     res.status(401).send(); // jwt 토큰없을시 401
   } finally {
-    // 
+    //
   }
 };
 
@@ -61,3 +61,4 @@ app.use('/common', require('./routes/commonRouter'));
 // 관리자 페이지 api jwt O
 app.use('/auth', handleJwtCheck, require('./routes/authRouter'));
 app.use('/templateManage', handleJwtCheck, require('./routes/templatemanageRouter'));
+app.use('/dashboard', handleJwtCheck, require('./routes/dashboardRouter'));
