@@ -23,7 +23,7 @@ const site = {
   },
   addVisterCount: (params) => {
     return `
-      INSERT INTO user_daily_visted (userId, ptId, userIp, vistedTime) 
+      INSERT INTO user_daily_visted (userId, ptId, userIp, timeStamp) 
       VALUES ('${params.userId}', '${params.ptId}', '${params.userIp}' , NOW());
     `;
   },
