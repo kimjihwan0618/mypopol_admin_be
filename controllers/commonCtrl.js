@@ -19,40 +19,45 @@ const commonCtrl = {
   postSignIn: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { password } = req.body;
-      const [users, error] = await connection.query(query.getUser(queryParse.singleQuiteParse(req.body)));
-      if (users.length === 1) {
-        const hashPassword = users[0].password;
-        const match = await bcrypt.compare(password, hashPassword);
-        if (match) {
-          const user = {
-            userKey: `${users[0].userKey}`,
-            userId: `${users[0].userId}`,
-            username: `${users[0].userName}`,
-            roleId: `${users[0].roleId}`,
-            role: `${users[0].roleName}`,
-          };
-          const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
-          res.cookie('token', token, { httpOnly: true });
-          res.status(200).send({
-            ...{
-              accessToken: token,
-              tokenExpiresIn: new Date().getTime(),
-            },
-            ...user,
-          });
-          logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
-        } else {
-          res.status(204).json({
-            message: '일치하는 유저 정보가 없습니다.',
-            timestamp: new Date(),
-          });
-        }
-      } else {
+      const { password, snsAuthToken } = req.body;
+      const [users, error] = await connection.query(
+        query.getUser(queryParse.singleQuiteParse(req.body))
+      );
+      const handleSuccess = () => {
+        const user = {
+          userKey: `${users[0].userKey}`,
+          userId: `${users[0].userId}`,
+          username: `${users[0].userName}`,
+          roleId: `${users[0].roleId}`,
+          role: `${users[0].roleName}`,
+        };
+        const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
+        res.cookie('token', token, { httpOnly: true });
+        res.status(200).send({
+          ...{
+            accessToken: token,
+            tokenExpiresIn: new Date().getTime(),
+          },
+          ...user,
+        });
+        logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
+      };
+      const handleFalse = () => {
         res.status(204).json({
           message: '일치하는 유저 정보가 없습니다.',
           timestamp: new Date(),
         });
+      };
+      if (users.length === 1) {
+        if (snsAuthToken) {
+          handleSuccess();
+        } else if (password) {
+          const hashPassword = users[0].password;
+          const match = await bcrypt.compare(password, hashPassword);
+          match ? handleSuccess() : handleFalse();
+        }
+      } else {
+        handleFalse();
       }
     } catch (err) {
       logger.error('signIn 에러 : ', err);
@@ -202,7 +207,7 @@ const commonCtrl = {
   putUserPassword: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { password } = req.body
+      const { password } = req.body;
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(password, salt);
       req.body.hashPassword = hash;
