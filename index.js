@@ -3,12 +3,15 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const http = require('http');
+const WebSocket = require('ws');
 const app = express();
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const log4js = require('log4js');
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
+const clientSessions = require('./clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
 log4js.configure(log4jsConfig);
 
 const corsOptions = {
@@ -26,6 +29,16 @@ const corsOptions = {
 };
 // cors 허용 호스트
 
+const port = 3000;
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+const upload = multer().any();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cors(corsOptions));
+app.use(upload);
+
 const handleJwtCheck = (req, res, next) => {
   const authToken = req.headers.authorization;
   try {
@@ -39,16 +52,24 @@ const handleJwtCheck = (req, res, next) => {
   }
 };
 
-const upload = multer().any();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cors(corsOptions));
-app.use(upload);
+wss.on('connection', (ws, req) => {
+  const cookie = req.headers['cookie']; // 클라이언트의 세션 ID를 획득 (예시: 헤더에서 'session-id' 값을 가져옴)
+  const regex = /token=([^;]+)/;
+  const match = cookie.match(regex);
+  const jwt = match ? match[1] : null;
+  console.log(jwt)
+  clientSessions.set(jwt, ws);  // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
+  ws.on('close', () => {
+    clientSessions.delete(sessionId);
+  });
+});
 
-const port = 3000;
 app.listen(port, () => {
-  logger.info('My Popol API 서버가 시작되었습니다.', port);
+  logger.info('My Popol API 서버 Open.', port);
+});
+
+server.listen(3002, () => {
+  logger.info('My Popol WebSocket 서버 Open.', port);
 });
 
 // 사용자 페이지 api jwt X

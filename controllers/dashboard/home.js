@@ -4,7 +4,9 @@ const log4js = require('log4js');
 const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/dashboard'));
 const logger = log4js.getLogger('access');
+const WebSocket = require('ws');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
+const clientSessions = require(path.join(root, 'clientSessions')); // 클라이언트와 세션 ID를 매핑할 맵
 log4js.configure(log4jsConfig);
 
 const homeCtrl = {
@@ -76,6 +78,13 @@ const homeCtrl = {
       connection.release();
     }
   },
+  testWs: async (req, res) => {
+    const authToken = req.headers.authorization;
+    const ws = clientSessions.get(authToken);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send('Email sent successfully');
+    }
+  }
 };
 
 module.exports = homeCtrl;
