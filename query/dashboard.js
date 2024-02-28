@@ -15,8 +15,20 @@ const dashbard = {
   },
   getVistors: (userId) => {
     return `
-    SELECT * FROM user_daily_visted
-    WHERE userId = '${userId}'`;
+    SELECT 
+    A.*,
+    B.popolName
+    FROM user_daily_visted A
+    LEFT OUTER JOIN popols B
+    ON 1=1
+    AND A.ptId = B.ptId
+    LEFT OUTER JOIN users C
+    ON 1=1
+    AND B.userKey = C.userKey
+    WHERE 1=1
+    AND A.userId = '${userId}'
+    AND C.userId = '${userId}'
+    `;
   },
   getMails: (userId) => {
     return `

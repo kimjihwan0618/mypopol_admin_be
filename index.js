@@ -29,7 +29,8 @@ const corsOptions = {
 };
 // cors 허용 호스트
 
-const port = 3000;
+const apiPort = 3000;
+const websocketPort = 3003;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const upload = multer().any();
@@ -57,19 +58,18 @@ wss.on('connection', (ws, req) => {
   const regex = /token=([^;]+)/;
   const match = cookie.match(regex);
   const jwt = match ? match[1] : null;
-  console.log(jwt)
   clientSessions.set(jwt, ws);  // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
   ws.on('close', () => {
-    clientSessions.delete(sessionId);
+    clientSessions.delete(jwt);
   });
 });
 
-app.listen(port, () => {
-  logger.info('My Popol API 서버 Open.', port);
+app.listen(apiPort, () => {
+  logger.info('My Popol API 서버 Open.', apiPort);
 });
 
-server.listen(3002, () => {
-  logger.info('My Popol WebSocket 서버 Open.', port);
+server.listen(websocketPort, () => {
+  logger.info('My Popol WebSocket 서버 Open.', websocketPort);
 });
 
 // 사용자 페이지 api jwt X
