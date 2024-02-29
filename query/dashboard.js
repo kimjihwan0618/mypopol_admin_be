@@ -17,7 +17,8 @@ const dashbard = {
     return `
     SELECT 
     A.*,
-    B.popolName
+    B.popolName,
+    B.popolSeq
     FROM user_daily_visted A
     LEFT OUTER JOIN popols B
     ON 1=1
