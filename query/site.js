@@ -2,7 +2,24 @@ const site = {
   getPopolInfo: (params) => {
     return `
     SELECT 
-    A.* ,
+    A.popolSeq,
+    A.popolName,
+    A.fakeName,
+    A.userKey,
+    A.ptId,
+    A.phone,
+    A.email,
+    A.title,
+    A.sns,
+    A.icon,
+    A.mainColor,
+    A.profileImg,
+    A.thumbnail,
+    DATE_FORMAT(A.renewalDate, '%Y-%m-%d %H:%i:%s') AS renewalDate,
+    DATE_FORMAT(A.lastUpdated, '%Y-%m-%d %H:%i:%s') AS lastUpdated,
+    A.usedDay,
+    A.status,
+    A.domain,
     B.userId
     FROM popols A
     LEFT JOIN users B
@@ -15,7 +32,20 @@ const site = {
   },
   getWorks: (popolSeq) => {
     return `
-    SELECT * FROM works
+    SELECT
+    workSeq,
+    popolSeq,
+    workId,
+    ${'`order`'},
+    title,
+    subTitle,
+    poster,
+    logo,
+    summary,
+    etc,
+    src,
+    DATE_FORMAT(lastUpdated, '%Y-%m-%d %H:%i:%s') AS lastUpdated
+	  FROM works
     WHERE 1=1
     AND popolSeq = ${popolSeq}
     ORDER BY workId, ${'`order`'}

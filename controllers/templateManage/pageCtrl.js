@@ -64,6 +64,7 @@ const pageCtrl = {
     }
   },
   updatePageTem: async (req, res) => {
+    const connection = await dbPool.getConnection();
     try {
       const reqJson = JSON.parse(req.body.fields);
       const files = req.files;
@@ -116,8 +117,6 @@ const pageCtrl = {
           await sftp.delete(oldProfilePath);
         }
       }
-
-      const connection = await dbPool.getConnection();
       await connection.query(query.updatePageTem(queryParse.singleQuiteParse(reqJson)));
       for (let i = 0; i < reqJson.workList.length; i++) {
         await connection.query(query.updateWorkOrder2(reqJson.workList[i], i));

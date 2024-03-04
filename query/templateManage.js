@@ -2,10 +2,27 @@ const query = {
   getPageTemList: (param) => {
     return `
     SELECT 
-	  A.*,
-	  B.description,
-	  C.userId
-	  FROM popols AS A
+    A.popolSeq,
+    A.popolName,
+    A.fakeName,
+    A.userKey,
+    A.ptId,
+    A.phone,
+    A.email,
+    A.title,
+    A.sns,
+    A.icon,
+    A.mainColor,
+    A.profileImg,
+    A.thumbnail,
+    DATE_FORMAT(A.lastUpdated, '%Y-%m-%d %H:%i:%s') AS lastUpdated,
+    DATE_FORMAT(A.renewalDate, '%Y-%m-%d %H:%i:%s') AS renewalDate,
+    A.usedDay,
+    A.status,
+    A.domain,
+    B.description,
+    C.userId
+    FROM popols AS A
     LEFT OUTER JOIN popol_info AS B
     ON 1=1
     AND A.ptId = B.ptId
@@ -22,7 +39,7 @@ const query = {
       WHERE 1=1
       AND userId = '${param.userId}'
       AND ptId = '${param.ptId}'
-    `
+    `;
   },
   updatePageTem: (param) => {
     return `
@@ -45,15 +62,16 @@ const query = {
     `;
   },
   addWork: (param) => {
-    const { popolSeq, workId, order, title, subTitle, poster, logo, summary, siteList, src } = param
+    const { popolSeq, workId, order, title, subTitle, poster, logo, summary, siteList, src } =
+      param;
     return `
-      INSERT INTO works (popolSeq, workId, ${"`order`"}, title, subTitle, poster, logo, summary, etc, src)
+      INSERT INTO works (popolSeq, workId, ${'`order`'}, title, subTitle, poster, logo, summary, etc, src)
       VALUES (${popolSeq}, ${workId}, ${order}, '${title}', '${subTitle}', '${poster}', '${logo}', '${summary}', '${siteList}', '${src}');
-    `
+    `;
   },
   seletWorkOrder: (param) => {
     return `
-    SELECT MAX(${"`order`"}) + 1 AS max_order FROM works
+    SELECT MAX(${'`order`'}) + 1 AS max_order FROM works
     WHERE popolSeq = ${param.popolSeq}
     AND workId = ${param.workId};
     `;
@@ -66,7 +84,7 @@ const query = {
   },
   seletWorkOrder: (param) => {
     return `
-    SELECT MAX(${"`order`"}) + 1 AS max_order FROM works
+    SELECT MAX(${'`order`'}) + 1 AS max_order FROM works
     WHERE popolSeq = ${param.popolSeq}
     AND workId = ${param.workId};
     `;
@@ -94,14 +112,14 @@ const query = {
   },
   updateWorkOrder: (param) => {
     return `  
-      UPDATE works SET ${"`order`"} = ${"`order`"} - 1 
+      UPDATE works SET ${'`order`'} = ${'`order`'} - 1 
       WHERE popolSeq = ${param.popolSeq}
-      AND ${"`order`"} > ${param.order};
+      AND ${'`order`'} > ${param.order};
     `;
   },
   updateWorkOrder2: (work, index) => {
     return `  
-      UPDATE works SET ${"`order`"} = ${index} 
+      UPDATE works SET ${'`order`'} = ${index} 
       WHERE popolSeq = ${work.popolSeq}
       AND workSeq = ${work.workSeq}
       AND workId = ${work.workId}
@@ -118,8 +136,8 @@ const query = {
       WHERE 1=1
       AND workSeq = ${param.workSeq}
       AND src = '${param.src}'
-    `
-  }
+    `;
+  },
 };
 
 module.exports = query;
