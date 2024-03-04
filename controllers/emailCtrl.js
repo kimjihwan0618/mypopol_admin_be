@@ -33,17 +33,17 @@ const emailCtrl = {
         };
         await transporter.sendMail(mailOptions, function (error, info) {
           if (error) {
+            logger.info("들어오긴 하니 2?")
             logger.error(error);
           } else {
-            connection.query(query.insertMailCount(req.body), (error, rows) => {
-              if (error) {
-                logger.error(error);
-              }
-              logger.info(`Mail Send -> From : ${from}, To : ${to}`);
-            });
+            logger.info("들어오긴 하니 3?")
+            connection.query(query.insertMailCount(req.body))
+            logger.info(`Mail Send -> From : ${from}, To : ${to}`);
           }
         });
-        res.end('/email/send Suc');
+        res.status(200).json({ success: true, message: 'Mail sent successfully.' });
+      } else {
+        res.status(403).json({ success: false, message: 'Invalid password.' });
       }
     } catch (err) {
       res.status(500).json({
