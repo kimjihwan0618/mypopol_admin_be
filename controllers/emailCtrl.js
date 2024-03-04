@@ -14,7 +14,7 @@ const emailCtrl = {
     const connection = await dbPool.getConnection();
     try {
       req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-      const { from, to, subject, body, pw, title } = req.body;
+      const { from, to, subject, html, pw, title } = req.body;
       if (pw === 'WlGhks010!@#') {
         const transporter = nodemailer.createTransport({
           host: emailAuth.host,
@@ -29,14 +29,12 @@ const emailCtrl = {
           from: emailAuth.user,
           to: to,
           subject: `[${subject}] ${title}`,
-          html: body,
+          html: html,
         };
         await transporter.sendMail(mailOptions, function (error, info) {
           if (error) {
-            logger.info("들어오긴 하니 2?")
             logger.error(error);
           } else {
-            logger.info("들어오긴 하니 3?")
             connection.query(query.insertMailCount(req.body))
             logger.info(`Mail Send -> From : ${from}, To : ${to}`);
           }
