@@ -37,7 +37,7 @@ const emailCtrl = {
           } else {
             connection.query(query.insertMailCount(req.body), (error, rows) => {
               if (error) {
-                throw error;
+                logger.error(error);
               }
               logger.info(`Mail Send -> From : ${from}, To : ${to}`);
             });
