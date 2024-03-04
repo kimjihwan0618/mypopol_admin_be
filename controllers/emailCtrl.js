@@ -31,11 +31,11 @@ const emailCtrl = {
           subject: `[${subject}] ${title}`,
           html: body,
         };
-        transporter.sendMail(mailOptions, async function (error, info) {
+        await transporter.sendMail(mailOptions, function (error, info) {
           if (error) {
             logger.error(error);
           } else {
-            await connection.query(query.insertMailCount(req.body), (error, rows) => {
+            connection.query(query.insertMailCount(req.body), (error, rows) => {
               if (error) {
                 throw error;
               }
