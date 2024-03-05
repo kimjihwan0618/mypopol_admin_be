@@ -31,6 +31,8 @@ const commonCtrl = {
           username: `${users[0].userName}`,
           roleId: `${users[0].roleId}`,
           role: `${users[0].roleName}`,
+          authType: `${users[0].authType}`,
+          authValue: `${users[0].authValue}`,
         };
         const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
         res.cookie('token', token, { httpOnly: true });
@@ -150,7 +152,7 @@ const commonCtrl = {
   postUser: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { templateId, userId, userName, userKey, password } = req.body;
+      const { templateId, userId, userName, userKey, password, authType, authValue } = req.body;
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(password, salt);
       req.body.hashPassword = hash;
@@ -161,7 +163,7 @@ const commonCtrl = {
       const template_def_src = `/web/site/${templateId}`;
       await sftp.mkdir(`${template_def_src}/${userId}`, true); // 포트폴리오 템플릿 디렉토리
       await sftp.mkdir(`${template_def_src}/${userId}/img`, true); // 작품 이미지 디렉토리
-      await sftp.mkdir(`${template_def_src}/src/img/profile/${userId}`, true); // 프로필 사진 저장 디렉토리
+      await sftp.mkdir(`/web/site/src/img/profile/${userId}`, true); // 프로필 사진 저장 디렉토리
       const fileList = await sftp.list(`${template_def_src}/example`);
       for (const file of fileList) {
         if (file.type !== 'd') {
@@ -185,6 +187,8 @@ const commonCtrl = {
         username: `${userName}`,
         roleId: `2`, // 회원가입시 기본 유저 생성
         role: `FREE`,
+        authType: `${authType}`,
+        authValue: `${authValue}`,
       };
       const token = jwt.sign(user, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
       res.cookie('token', token, { httpOnly: true });

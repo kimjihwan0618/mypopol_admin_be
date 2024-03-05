@@ -58,7 +58,7 @@ wss.on('connection', (ws, req) => {
   const regex = /token=([^;]+)/;
   const match = cookie.match(regex);
   const jwt = match ? match[1] : null;
-  clientSessions.set(jwt, ws);  // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
+  clientSessions.set(jwt, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
   ws.on('close', () => {
     clientSessions.delete(jwt);
   });
@@ -83,3 +83,4 @@ app.use('/common', require('./routes/commonRouter'));
 app.use('/auth', handleJwtCheck, require('./routes/authRouter'));
 app.use('/templateManage', handleJwtCheck, require('./routes/templatemanageRouter'));
 app.use('/dashboard', handleJwtCheck, require('./routes/dashboardRouter'));
+app.use('/my-page', handleJwtCheck, require('./routes/mypageRouter'));
