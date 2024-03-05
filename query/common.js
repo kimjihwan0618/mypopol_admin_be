@@ -9,7 +9,8 @@ const common = {
       B.roleId,
       B.roleName,
       A.authType,
-      A.authValue
+      A.authValue,
+      A.profileImg
       FROM users A
       LEFT JOIN roles B
       ON 1=1

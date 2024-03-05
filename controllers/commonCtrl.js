@@ -27,6 +27,7 @@ const commonCtrl = {
         const user = {
           userKey: `${users[0].userKey}`,
           userId: `${users[0].userId}`,
+          profileImg: `${users[0].profileImg}`,
           username: `${users[0].userName}`,
           roleId: `${users[0].roleId}`,
           role: `${users[0].roleName}`,
@@ -159,6 +160,7 @@ const commonCtrl = {
       await sftp.connect(sftpConfig);
       const template_def_src = `/web/site/${templateId}`;
       await sftp.mkdir(`${template_def_src}/${userId}`, true);
+      await sftp.mkdir(`${template_def_src}/${userId}/img`, true);
       const fileList = await sftp.list(`${template_def_src}/example`);
       for (const file of fileList) {
         if (file.type !== 'd') {
@@ -177,6 +179,7 @@ const commonCtrl = {
       await connection.commit();
       const user = {
         userKey: `${userKey}`,
+        profileImg: ``,
         userId: `${userId}`,
         username: `${userName}`,
         roleId: `2`, // 회원가입시 기본 유저 생성
