@@ -159,8 +159,9 @@ const commonCtrl = {
       await connection.query(query.postPopol(req.body));
       await sftp.connect(sftpConfig);
       const template_def_src = `/web/site/${templateId}`;
-      await sftp.mkdir(`${template_def_src}/${userId}`, true);
-      await sftp.mkdir(`${template_def_src}/${userId}/img`, true);
+      await sftp.mkdir(`${template_def_src}/${userId}`, true); // 포트폴리오 템플릿 디렉토리
+      await sftp.mkdir(`${template_def_src}/${userId}/img`, true); // 작품 이미지 디렉토리
+      await sftp.mkdir(`${template_def_src}/src/img/profile/${userId}`, true); // 프로필 사진 저장 디렉토리
       const fileList = await sftp.list(`${template_def_src}/example`);
       for (const file of fileList) {
         if (file.type !== 'd') {
