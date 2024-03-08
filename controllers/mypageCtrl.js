@@ -8,6 +8,7 @@ const dbPool = require(path.join(root, 'config/db.config'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
 const query = require(path.join(root, 'query/myPage'));
 const logger = log4js.getLogger('access');
+const bcrypt = require('bcrypt');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
@@ -59,6 +60,29 @@ const mypageCtrl = {
       logger.error('postProfileImg error :', err);
     } finally {
       sftp.end();
+      connection.release();
+    }
+  },
+  putProfileInfo: async (req, res) => {
+    const connection = await dbPool.getConnection();
+    try {
+      const { password, username, userId } = req.body;
+      if (password) {
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+        req.body.hashPassword = hash;
+        await connection.query(query.updateProfilePassword(req.body));
+      }
+      await connection.query(query.updateProfileName(req.body));
+      res.status(200).send(true);
+    } catch (err) {
+      await connection.rollback();
+      logger.error('postProfileImg 에러 : ', err);
+      res.status(500).send({
+        message: 'postProfileImg 에러',
+        timestamp: new Date(),
+      });
+    } finally {
       connection.release();
     }
   },

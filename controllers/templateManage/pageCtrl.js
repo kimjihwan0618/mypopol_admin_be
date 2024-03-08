@@ -140,6 +140,7 @@ const pageCtrl = {
     }
   },
   addOrUpdateWork: async (req, res) => {
+    const connection = await dbPool.getConnection();
     try {
       const reqJson = JSON.parse(req.body.fields);
       const files = req.files;
@@ -191,7 +192,6 @@ const pageCtrl = {
             );
           }
         }
-        const connection = await dbPool.getConnection();
         await connection.query(query.updateWork(queryParse.singleQuiteParse(reqJson)));
         connection.release();
         res.status(200).send({

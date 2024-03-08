@@ -71,22 +71,15 @@ const query = {
   },
   seletWorkOrder: (param) => {
     return `
-    SELECT MAX(${'`order`'}) + 1 AS max_order FROM works
-    WHERE popolSeq = ${param.popolSeq}
-    AND workId = ${param.workId};
+    SELECT COALESCE(MAX(${'`order`'}), 0) AS max_order
+    FROM works
+    WHERE popolSeq = ${param.popolSeq};
     `;
   },
   seletLastWorkSeq: () => {
     return `
     SELECT MAX(workSeq) AS last_work_seq
     FROM works;
-    `;
-  },
-  seletWorkOrder: (param) => {
-    return `
-    SELECT MAX(${'`order`'}) + 1 AS max_order FROM works
-    WHERE popolSeq = ${param.popolSeq}
-    AND workId = ${param.workId};
     `;
   },
   updateWork: (param) => {
