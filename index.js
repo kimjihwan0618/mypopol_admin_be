@@ -58,6 +58,10 @@ wss.on('connection', (ws, req) => {
   const userId = url.searchParams.get('userId');
   logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
+  ws.on('error', (error) => {
+    logger.error(`웹소켓 에러 [userId: ${userId}] : ${error.message}`);
+  });
+
   ws.on('close', () => {
     logger.info(`웹소켓 close : ${userId}`);
     clientSessions.delete(userId);
