@@ -54,13 +54,12 @@ const handleJwtCheck = (req, res, next) => {
 };
 
 wss.on('connection', (ws, req) => {
-  const cookie = req.headers['cookie']; // 클라이언트의 세션 ID를 획득 (예시: 헤더에서 'session-id' 값을 가져옴)
-  const regex = /token=([^;]+)/;
-  const match = cookie.match(regex);
-  const jwt = match ? match[1] : null;
-  clientSessions.set(jwt, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
+  const url = new URL(req.url, `ws://${req.headers.host}`);
+  const userId = url.searchParams.get('userId');
+  console.log(userId);
+  clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
   ws.on('close', () => {
-    clientSessions.delete(jwt);
+    clientSessions.delete(userId);
   });
 });
 

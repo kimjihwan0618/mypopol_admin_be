@@ -4,6 +4,7 @@ const log4js = require('log4js');
 const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/site'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
+const clientSessions = require(path.join(root, 'clientSessions'));
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
@@ -15,8 +16,14 @@ const siteCtrl = {
       req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       if (req.body.countFlag) {
         await connection.query(query.addVisterCount(req.body));
+        const ws = clientSessions.get(req.body.userId);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send('Email sent successfully');
+        }
       }
-      const [popols, error] = await connection.query(query.getPopolInfo(queryParse.singleQuiteParse(req.body)));
+      const [popols, error] = await connection.query(
+        query.getPopolInfo(queryParse.singleQuiteParse(req.body))
+      );
       if (popols.length === 1) {
         const [works, error2] = await connection.query(query.getWorks(popols[0].popolSeq));
         res.status(200).send({
