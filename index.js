@@ -30,7 +30,7 @@ const corsOptions = {
 // cors 허용 호스트
 
 const apiPort = 3000;
-const websocketPort = 3003;
+const websocketPort = 3006;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const upload = multer().any();
