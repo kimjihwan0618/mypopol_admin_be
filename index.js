@@ -56,9 +56,10 @@ const handleJwtCheck = (req, res, next) => {
 wss.on('connection', (ws, req) => {
   const url = new URL(req.url, `ws://${req.headers.host}`);
   const userId = url.searchParams.get('userId');
-  console.log(userId);
+  logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
   ws.on('close', () => {
+    logger.info(`웹소켓 close : ${userId}`);
     clientSessions.delete(userId);
   });
 });
