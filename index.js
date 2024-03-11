@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const http = require('http');
+const https = require('https');
 const WebSocket = require('ws');
 const app = express();
 const jwt = require('jsonwebtoken');
@@ -28,12 +29,16 @@ const corsOptions = {
   ],
 };
 // cors 허용 호스트
-
-const apiPort = 3000;
-const websocketPort = 3003; // 개발환경
-// const websocketPort = 3006; // 배포환경
-const server = http.createServer(app);
+// SSL/TLS 인증서 및 개인 키 파일 경로
+// const options = {
+//   key: fs.readFileSync('/path/to/private-key.pem'),
+//   cert: fs.readFileSync('/path/to/certificate.pem'),
+// };
+const websocketPort = 3003;
+// const server = https.createServer(app); // 배포 환경
+const server = http.createServer(app); // 개발 환경
 const wss = new WebSocket.Server({ server });
+const apiPort = 3000;
 const upload = multer().any();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
