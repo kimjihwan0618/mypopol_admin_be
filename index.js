@@ -30,7 +30,8 @@ const corsOptions = {
 // cors 허용 호스트
 
 const apiPort = 3000;
-const websocketPort = 3003;
+const websocketPort = 3003; // 개발환경
+// const websocketPort = 3006; // 배포환경
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 const upload = multer().any();
@@ -54,7 +55,8 @@ const handleJwtCheck = (req, res, next) => {
 };
 
 wss.on('connection', (ws, req) => {
-  const url = new URL(req.url, `ws://${req.headers.host}`);
+  // const url = new URL(req.url, `ws://${req.headers.host}`); // 개발 환경
+  const url = new URL(req.url, `wss://${req.headers.host}`); // 배포 환경
   const userId = url.searchParams.get('userId');
   logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
