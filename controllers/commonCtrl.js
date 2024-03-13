@@ -83,8 +83,8 @@ const commonCtrl = {
         const authKey = String(new Date().getTime()).slice(-8);
         const transporter = nodemailer.createTransport({
           host: emailAuth.host,
-          port: 587,
-          secure: false,
+          port: 465,
+          secure: true,
           auth: {
             user: emailAuth.user,
             pass: emailAuth.pass,
