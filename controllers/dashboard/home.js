@@ -82,8 +82,12 @@ const homeCtrl = {
     const authToken = req.headers.authorization;
     const ws = clientSessions.get(authToken);
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send('Email sent successfully');
+      await ws.send('Email sent successfully');
     }
+    res.status(200).json({
+      message: '웹소켓 메세지 보낸뒤 실행 성공',
+      timestamp: new Date(),
+    });
   }
 };
 

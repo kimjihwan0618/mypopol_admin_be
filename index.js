@@ -15,8 +15,8 @@ const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 const clientSessions = require('./clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
 const sslCertPath = path.join(__dirname, 'auth', 'cert.pem');
-const sslCert = fs.readFileSync(sslCertPath);
 const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem');
+const sslCert = fs.readFileSync(sslCertPath);
 const sslKey = fs.readFileSync(sslKeyPath);
 log4js.configure(log4jsConfig);
 // cors 허용 호스트
