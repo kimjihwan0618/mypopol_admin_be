@@ -21,7 +21,7 @@ const emailCtrl = {
         const transporter = nodemailer.createTransport({
           host: emailAuth.host,
           port: 465,
-          secure: true,
+          secure: false,
           auth: {
             user: emailAuth.user,
             pass: emailAuth.pass,
