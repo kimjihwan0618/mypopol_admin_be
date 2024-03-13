@@ -6,6 +6,7 @@ const query = require(path.join(root, 'query/site'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
 const clientSessions = require(path.join(root, 'clientSessions'));
 const logger = log4js.getLogger('access');
+const WebSocket = require('ws');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
