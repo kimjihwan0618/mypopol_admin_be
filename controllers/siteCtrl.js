@@ -27,8 +27,6 @@ const siteCtrl = {
             userId: req.body.userId,
             data: rows[0]
           }));
-        } else {
-          logger.error(`WS - 방문자 카운트 [Error] : ${req.body.userId}`);
         }
       }
       const [popols, error] = await connection.query(

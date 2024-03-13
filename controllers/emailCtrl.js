@@ -45,8 +45,6 @@ const emailCtrl = {
             userId: req.body.userId,
             data: rows[0]
           }));
-        } else {
-          logger.error(`WS - 이메일 카운트 [Error] : ${req.body.userId}`);
         }
         logger.info(`Mail Send -> From : ${from}, To : ${to}`);
         res.status(200).json({ success: true, message: 'Mail sent successfully.' });

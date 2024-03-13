@@ -79,7 +79,7 @@ const commonCtrl = {
       const [users, error] = await connection.query(
         query.getUser(queryParse.singleQuiteParse(req.body))
       );
-      const handleAuthCodeIssuance = () => {
+      const handleAuthCodeIssuance = async () => {
         const authKey = String(new Date().getTime()).slice(-8);
         const transporter = nodemailer.createTransport({
           host: emailAuth.host,
@@ -104,13 +104,8 @@ const commonCtrl = {
           <p style="font-weight: bold;">인증코드 : ${authKey}</p>
           `,
         };
-        transporter.sendMail(mailOptions, function (error, info) {
-          if (error) {
-            logger.error(`signCodePub send error : ${error}`);
-          } else {
-            logger.info(`회원가입을 위한 본인 인증번호를 발급하였습니다. ${userEmail}`);
-          }
-        });
+        const info = await transporter.sendMail(mailOptions);
+        logger.info(`회원가입을 위한 본인 인증번호를 발급하였습니다. ${userEmail}`);
         res.status(200).send({
           authKey,
           ...(forgotPw && { authValue: users[0].authValue }),
