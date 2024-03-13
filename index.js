@@ -1,5 +1,6 @@
 const root = require.main.path;
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -13,6 +14,10 @@ const log4js = require('log4js');
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 const clientSessions = require('./clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
+const sslCertPath = path.join(__dirname, 'auth', 'cert.pem');
+const sslCert = fs.readFileSync(sslCertPath);
+const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem');
+const sslKey = fs.readFileSync(sslKeyPath);
 log4js.configure(log4jsConfig);
 // cors 허용 호스트
 const corsOptions = {
@@ -30,8 +35,8 @@ const corsOptions = {
 };
 // SSL/TLS 인증서 및 개인 키 파일 경로
 const options = {
-  key: path.join(root, 'auth/privkey.pem'),
-  cert: path.join(root, 'auth/cert.pem'),
+  key: sslKey,
+  cert: sslCert,
 };
 const websocketPort = 3003;
 const server = https.createServer(options, app); // 배포 환경
