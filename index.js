@@ -3,8 +3,8 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const http = require('http');
-const https = require('https');
+// const http = require('http'); // 개발 환경
+const https = require('https'); // 배포 환경
 const WebSocket = require('ws');
 const app = express();
 const jwt = require('jsonwebtoken');
@@ -30,7 +30,7 @@ const corsOptions = {
 };
 // SSL/TLS 인증서 및 개인 키 파일 경로
 const options = {
-  key: path.join(root, 'auth/key.pem'),
+  key: path.join(root, 'auth/privkey.pem'),
   cert: path.join(root, 'auth/cert.pem'),
 };
 const websocketPort = 3003;
