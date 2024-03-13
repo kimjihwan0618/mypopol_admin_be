@@ -33,27 +33,22 @@ const emailCtrl = {
           subject: `[${subject}] ${title}`,
           html: html,
         };
-        await transporter.sendMail(mailOptions, async function (error, info) {
-          if (error) {
-            logger.error(error);
-          } else {
-            const [insertResult, error2] = await connection.query(query.insertMailCount(req.body))
-            const [rows] = await connection.query("SELECT * FROM mail_sent_count WHERE seq = ?", [insertResult.insertId]);
-            const ws = clientSessions.get(req.body.userId);
-            if (ws && ws.readyState === WebSocket.OPEN) {
-              logger.info(`WS - 이메일 카운트 [Info] : ${req.body.userId}`);
-              ws.send(JSON.stringify({
-                type: '이메일 카운트',
-                ptId: req.body.ptId,
-                userId: req.body.userId,
-                data: rows[0]
-              }));
-            } else {
-              logger.error(`WS - 이메일 카운트 [Error] : ${req.body.userId}`);
-            }
-            logger.info(`Mail Send -> From : ${from}, To : ${to}`);
-          }
-        });
+        const info = await transporter.sendMail(mailOptions);
+        const [insertResult, error2] = await connection.query(query.insertMailCount(req.body))
+        const [rows] = await connection.query("SELECT * FROM mail_sent_count WHERE seq = ?", [insertResult.insertId]);
+        const ws = clientSessions.get(req.body.userId);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          logger.info(`WS - 이메일 카운트 [Info] : ${req.body.userId}`);
+          ws.send(JSON.stringify({
+            type: '이메일 카운트',
+            ptId: req.body.ptId,
+            userId: req.body.userId,
+            data: rows[0]
+          }));
+        } else {
+          logger.error(`WS - 이메일 카운트 [Error] : ${req.body.userId}`);
+        }
+        logger.info(`Mail Send -> From : ${from}, To : ${to}`);
         res.status(200).json({ success: true, message: 'Mail sent successfully.' });
       } else {
         res.status(403).json({ success: false, message: 'Invalid password.' });
