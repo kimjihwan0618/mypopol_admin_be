@@ -14,7 +14,7 @@ const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 const clientSessions = require('./clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
 log4js.configure(log4jsConfig);
-
+// cors 허용 호스트
 const corsOptions = {
   origin: [
     'http://caribo.me',
@@ -28,7 +28,6 @@ const corsOptions = {
     'http://127.0.0.1:5500',
   ],
 };
-// cors 허용 호스트
 // SSL/TLS 인증서 및 개인 키 파일 경로
 // const options = {
 //   key: fs.readFileSync('/path/to/private-key.pem'),
@@ -60,8 +59,8 @@ const handleJwtCheck = (req, res, next) => {
 };
 
 wss.on('connection', (ws, req) => {
-  // const url = new URL(req.url, `ws://${req.headers.host}`); // 개발 환경
-  const url = new URL(req.url, `wss://${req.headers.host}`); // 배포 환경
+  const url = new URL(req.url, `ws://${req.headers.host}`); // 개발 환경
+  // const url = new URL(req.url, `wss://${req.headers.host}`); // 배포 환경
   const userId = url.searchParams.get('userId');
   logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
