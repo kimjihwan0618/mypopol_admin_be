@@ -5,3 +5,5 @@ node_modules/
 logs/
 
 config/
+
+auth/

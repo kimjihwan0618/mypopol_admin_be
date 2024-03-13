@@ -29,13 +29,13 @@ const corsOptions = {
   ],
 };
 // SSL/TLS 인증서 및 개인 키 파일 경로
-// const options = {
-//   key: fs.readFileSync('/path/to/private-key.pem'),
-//   cert: fs.readFileSync('/path/to/certificate.pem'),
-// };
+const options = {
+  key: path.join(root, 'auth/key.pem'),
+  cert: path.join(root, 'auth/cert.pem'),
+};
 const websocketPort = 3003;
-// const server = https.createServer(app); // 배포 환경
-const server = http.createServer(app); // 개발 환경
+const server = https.createServer(options, app); // 배포 환경
+// const server = http.createServer(app); // 개발 환경
 const wss = new WebSocket.Server({ server });
 const apiPort = 3000;
 const upload = multer().any();
@@ -59,8 +59,8 @@ const handleJwtCheck = (req, res, next) => {
 };
 
 wss.on('connection', (ws, req) => {
-  const url = new URL(req.url, `ws://${req.headers.host}`); // 개발 환경
-  // const url = new URL(req.url, `wss://${req.headers.host}`); // 배포 환경
+  // const url = new URL(req.url, `ws://${req.headers.host}`); // 개발 환경
+  const url = new URL(req.url, `wss://${req.headers.host}`); // 배포 환경
   const userId = url.searchParams.get('userId');
   logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
