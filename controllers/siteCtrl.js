@@ -19,11 +19,11 @@ const siteCtrl = {
         await connection.query(query.addVisterCount(req.body));
         const ws = clientSessions.get(req.body.userId);
         if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send({
+          ws.send(JSON.stringify({
             message: '방문자 카운트',
             ptId: req.body.ptId,
             userId: req.body.userId,
-          });
+          }));
         }
       }
       const [popols, error] = await connection.query(
