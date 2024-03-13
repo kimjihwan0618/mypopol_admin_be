@@ -3,6 +3,7 @@ const path = require('path');
 const log4js = require('log4js');
 const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/dashboard'));
+const query2 = require(path.join(root, 'query/site'));
 const logger = log4js.getLogger('access');
 const WebSocket = require('ws');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
@@ -78,16 +79,31 @@ const homeCtrl = {
       connection.release();
     }
   },
+  // 웹소켓 이벤트 테스트 API : testWs
   testWs: async (req, res) => {
-    const authToken = req.headers.authorization;
-    const ws = clientSessions.get(authToken);
+    const connection = await dbPool.getConnection();
+    const ws = clientSessions.get(req.body.userId);
+    const [result, error] = await connection.query(query2.addVisterCount({
+      userId: req.body.userId,
+      ptId: 'ptid01',
+      userIp: "127.0.0.1"
+    }));
+    const [rows] = await connection.query("SELECT * FROM user_daily_visted WHERE countSeq = ?", [result.insertId]);
     if (ws && ws.readyState === WebSocket.OPEN) {
-      await ws.send('Email sent successfully');
+      logger.info(`웹소켓 이벤트 [Info] : ${req.body.userId}`);
+      ws.send(JSON.stringify({
+        type: '방문자 카운트',
+        ptId: "ptid01",
+        data: rows[0],
+      }));
+    } else {
+      logger.error(`웹소켓 이벤트 [Error] : ${req.body.userId}`);
     }
     res.status(200).json({
       message: '웹소켓 메세지 보낸뒤 실행 성공',
       timestamp: new Date(),
     });
+    connection.release();
   }
 };
 

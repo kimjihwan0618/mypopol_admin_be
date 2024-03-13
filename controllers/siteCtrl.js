@@ -5,8 +5,8 @@ const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/site'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
 const clientSessions = require(path.join(root, 'clientSessions'));
-const logger = log4js.getLogger('access');
 const WebSocket = require('ws');
+const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
@@ -16,14 +16,19 @@ const siteCtrl = {
     try {
       req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       if (req.body.countFlag) {
-        await connection.query(query.addVisterCount(req.body));
+        const [insertResult, error] = await connection.query(query.addVisterCount(req.body));
+        const [rows] = await connection.query("SELECT * FROM user_daily_visted WHERE countSeq = ?", [insertResult.insertId]);
         const ws = clientSessions.get(req.body.userId);
         if (ws && ws.readyState === WebSocket.OPEN) {
+          logger.info(`WS - 방문자 카운트 [Info] : ${req.body.userId}`);
           ws.send(JSON.stringify({
-            message: '방문자 카운트',
+            type: '방문자 카운트',
             ptId: req.body.ptId,
             userId: req.body.userId,
+            data: rows[0]
           }));
+        } else {
+          logger.error(`WS - 방문자 카운트 [Error] : ${req.body.userId}`);
         }
       }
       const [popols, error] = await connection.query(
