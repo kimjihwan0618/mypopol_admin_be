@@ -51,13 +51,17 @@ app.use(cors(corsOptions));
 app.use(upload);
 
 const handleJwtCheck = (req, res, next) => {
-  const authToken = req.headers.authorization;
+  const authToken = req.headers?.authorization;
   try {
-    jwt.verify(authToken, 'my_secret_key');
-    next();
+    if (authToken) {
+      jwt.verify(authToken, 'my_secret_key');
+      next();
+    } else {
+      res.status(401).send(); // jwt 토큰없을시 401     
+    }
   } catch (err) {
-    logger.error('handleJwtCheck 에러 : ', err);
-    res.status(401).send(); // jwt 토큰없을시 401
+    logger.error('handleJwtCheck 서버 에러 : ', err);
+    res.status(500).send();
   } finally {
     //
   }
