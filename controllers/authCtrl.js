@@ -7,15 +7,23 @@ const query = require(path.join(root, 'query/auth'));
 const jwt = require('jsonwebtoken');
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
+const query2 = require(path.join(root, 'query/common'));
+const queryParse = require(path.join(root, 'utills/queryParse'));
 log4js.configure(log4jsConfig);
 
 const authCtrl = {
   putAccessToken: async (req, res) => {
+    const connection = await dbPool.getConnection();
     try {
       const authToken = req.headers.authorization;
       const decodedToken = jwt.verify(authToken, 'my_secret_key');
       delete decodedToken.iat;
       delete decodedToken.exp;
+      const [users, error] = await connection.query(
+        query2.getUser(queryParse.singleQuiteParse(decodedToken))
+      );
+      decodedToken.username = users[0].userName;
+      decodedToken.profileImg = users[0].profileImg;
       const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
       res.cookie('token', refreshToken, { httpOnly: true });
       res.status(200).send({
@@ -32,6 +40,8 @@ const authCtrl = {
         message: 'accessToken 에러',
         timestamp: new Date(),
       });
+    } finally {
+      connection.release();
     }
   },
   getMenus: async (req, res) => {
