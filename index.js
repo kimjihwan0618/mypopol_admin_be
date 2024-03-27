@@ -28,6 +28,7 @@ const corsOptions = {
     'https://admin.mypopol.com',
     'http://site.mypopol.com',
     'https://site.mypopol.com',
+    'https://kimjihwan0618.github.io',
     'https://kimjihodo.synology.me',
     'http://localhost:3001',
     'http://127.0.0.1:5500',
