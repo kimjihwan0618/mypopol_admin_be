@@ -14,10 +14,10 @@ const log4js = require('log4js');
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 const clientSessions = require('./clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
-const sslCertPath = path.join(__dirname, 'auth', 'cert.pem');
-const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem');
-const sslCert = fs.readFileSync(sslCertPath);
-const sslKey = fs.readFileSync(sslKeyPath);
+// const sslCertPath = path.join(__dirname, 'auth', 'cert.pem'); // NAS 배포 환경
+// const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem'); // NAS 배포 환경
+// const sslCert = fs.readFileSync(sslCertPath); // NAS 배포 환경
+// const sslKey = fs.readFileSync(sslKeyPath); // NAS 배포 환경
 log4js.configure(log4jsConfig);
 // cors 허용 호스트
 const corsOptions = {
