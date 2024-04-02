@@ -14,10 +14,10 @@ const log4js = require('log4js');
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 const clientSessions = require('./clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
-// const sslCertPath = path.join(__dirname, 'auth', 'cert.pem'); // NAS 배포 환경
-// const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem'); // NAS 배포 환경
-// const sslCert = fs.readFileSync(sslCertPath); // NAS 배포 환경
-// const sslKey = fs.readFileSync(sslKeyPath); // NAS 배포 환경
+const sslCertPath = path.join(__dirname, 'auth', 'cert.pem'); // NAS 배포 환경
+const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem'); // NAS 배포 환경
+const sslCert = fs.readFileSync(sslCertPath); // NAS 배포 환경
+const sslKey = fs.readFileSync(sslKeyPath); // NAS 배포 환경
 log4js.configure(log4jsConfig);
 // cors 허용 호스트
 const corsOptions = {
@@ -35,13 +35,13 @@ const corsOptions = {
   ],
 };
 // SSL/TLS 인증서 및 개인 키 파일 경로
-// const options = {
-//   key: sslKey, // NAS 배포 환경
-//   cert: sslCert, // NAS 배포 환경
-// };
+const options = {
+  key: sslKey, // NAS 배포 환경
+  cert: sslCert, // NAS 배포 환경
+};
 const websocketPort = 3003;
-// const server = https.createServer(options, app); // 배포 환경
-const server = http.createServer(app); // 개발 환경
+const server = https.createServer(options, app); // 배포 환경
+// const server = http.createServer(app); // 개발 환경
 const wss = new WebSocket.Server({ server });
 const apiPort = 3000;
 const upload = multer().any();
@@ -58,7 +58,7 @@ const handleJwtCheck = (req, res, next) => {
       jwt.verify(authToken, 'my_secret_key');
       next();
     } else {
-      res.status(401).send(); // jwt 토큰없을시 401     
+      res.status(401).send(); // jwt 토큰없을시 401
     }
   } catch (err) {
     logger.error('handleJwtCheck 서버 에러 : ', err);
@@ -69,8 +69,8 @@ const handleJwtCheck = (req, res, next) => {
 };
 
 wss.on('connection', (ws, req) => {
-  const url = new URL(req.url, `ws://${req.headers.host}`); // 개발 환경
-  // const url = new URL(req.url, `wss://${req.headers.host}`); // 배포 환경
+  // const url = new URL(req.url, `ws://${req.headers.host}`); // 개발 환경
+  const url = new URL(req.url, `wss://${req.headers.host}`); // 배포 환경
   const userId = url.searchParams.get('userId');
   logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
