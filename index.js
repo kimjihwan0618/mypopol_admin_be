@@ -35,10 +35,10 @@ const corsOptions = {
   ],
 };
 // SSL/TLS 인증서 및 개인 키 파일 경로
-const options = {
-  key: sslKey,
-  cert: sslCert,
-};
+// const options = {
+//   key: sslKey, // NAS 배포 환경
+//   cert: sslCert, // NAS 배포 환경
+// };
 const websocketPort = 3003;
 // const server = https.createServer(options, app); // 배포 환경
 const server = http.createServer(app); // 개발 환경
