@@ -12,7 +12,7 @@ const queryParse = require(path.join(root, 'utills/queryParse'));
 log4js.configure(log4jsConfig);
 
 const authCtrl = {
-  putAccessToken: async (req, res) => {
+  refreshJwt: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
       const authToken = req.headers.authorization;

@@ -1,6 +1,6 @@
 const siteCtrl = require('../controllers/siteCtrl');
 const router = require('express').Router();
 
-router.route('/post/popol-info').post(siteCtrl.postPopolInfo);
+router.route('/popol').post(siteCtrl.getPopolInfo);
 
 module.exports = router;

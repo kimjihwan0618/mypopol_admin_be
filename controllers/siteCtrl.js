@@ -11,7 +11,7 @@ const log4jsConfig = path.join(root, 'config/log4js.config.json');
 log4js.configure(log4jsConfig);
 
 const siteCtrl = {
-  postPopolInfo: async (req, res) => {
+  getPopolInfo: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
       req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
