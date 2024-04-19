@@ -18,6 +18,9 @@ const sslCertPath = path.join(__dirname, 'auth', 'cert.pem'); // NAS 배포 환�
 const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem'); // NAS 배포 환경
 const sslCert = fs.readFileSync(sslCertPath); // NAS 배포 환경
 const sslKey = fs.readFileSync(sslKeyPath); // NAS 배포 환경
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
+const specs = swaggerJsdoc(require("./config/swagger.config.json"));
 log4js.configure(log4jsConfig);
 // cors 허용 호스트
 const corsOptions = {
@@ -49,6 +52,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors(corsOptions));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(upload);
 
 const handleJwtCheck = (req, res, next) => {
