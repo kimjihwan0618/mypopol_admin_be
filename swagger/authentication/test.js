@@ -7,10 +7,12 @@
 
 /**
  * @swagger
- * /users:
+ * /jwt/refresh:
  *   get:
- *     summary: 모든 사용자 가져오기
+ *     summary: 모든 사용자 가져오기asd
  *     tags: [asdsad]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: 성공적으로 사용자 목록을 가져옴

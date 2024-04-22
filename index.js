@@ -1,27 +1,31 @@
+const express = require('express');
+const app = express();
 const root = require.main.path;
 const path = require('path');
 const fs = require('fs');
-const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const http = require('http');
 const https = require('https');
 const WebSocket = require('ws');
-const app = express();
+const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const log4js = require('log4js');
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 const clientSessions = require('./clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
-const sslCertPath = path.join(__dirname, 'auth', 'cert.pem'); // NAS 배포 환경
-const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem'); // NAS 배포 환경
-const sslCert = fs.readFileSync(sslCertPath); // NAS 배포 환경
-const sslKey = fs.readFileSync(sslKeyPath); // NAS 배포 환경
+const sslCertPath = path.join(__dirname, 'auth', 'cert.pem');
+const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem');
+const sslCert = fs.readFileSync(sslCertPath);
+const sslKey = fs.readFileSync(sslKeyPath);
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const specs = swaggerJsdoc(require("./config/swagger.config.json"));
+const env = process.env.NODE_ENV;
+const envFile = `.env.${env}`;
 log4js.configure(log4jsConfig);
+dotenv.config({ path: envFile });
 // cors 허용 호스트
 const corsOptions = {
   origin: [
@@ -39,14 +43,11 @@ const corsOptions = {
 };
 // SSL/TLS 인증서 및 개인 키 파일 경로
 const options = {
-  key: sslKey, // NAS 배포 환경
-  cert: sslCert, // NAS 배포 환경
+  key: sslKey,
+  cert: sslCert,
 };
-const websocketPort = 3003;
-const server = https.createServer(options, app); // 배포 환경
-// const server = http.createServer(app); // 개발 환경
+const server = env === "development" ? http.createServer(app) : https.createServer(options, app);
 const wss = new WebSocket.Server({ server });
-const apiPort = 3000;
 const upload = multer().any();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -62,38 +63,34 @@ const handleJwtCheck = (req, res, next) => {
       jwt.verify(authToken, 'my_secret_key');
       next();
     } else {
-      res.status(401).send(); // jwt 토큰없을시 401
+      res.status(401).send();
     }
   } catch (err) {
     logger.error('handleJwtCheck 서버 에러 : ', err);
     res.status(500).send();
-  } finally {
-    //
   }
 };
 
 wss.on('connection', (ws, req) => {
-  // const url = new URL(req.url, `ws://${req.headers.host}`); // 개발 환경
-  const url = new URL(req.url, `wss://${req.headers.host}`); // 배포 환경
+  const url = new URL(req.url, env === "development" ? `ws://${req.headers.host}` : `wss://${req.headers.host}`);
   const userId = url.searchParams.get('userId');
   logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
   ws.on('error', (error) => {
     logger.error(`웹소켓 에러 [userId: ${userId}] : ${error.message}`);
   });
-
   ws.on('close', () => {
     logger.info(`웹소켓 close : ${userId}`);
     clientSessions.delete(userId);
   });
 });
 
-app.listen(apiPort, () => {
-  logger.info('My Popol API 서버 Open.', apiPort);
+app.listen(process.env.API_PORT, () => {
+  logger.info('My Popol API Open.', process.env.API_PORT);
 });
 
-server.listen(websocketPort, () => {
-  logger.info('My Popol WebSocket 서버 Open.', websocketPort);
+server.listen(process.env.WEBSOCKET_PORT, () => {
+  logger.info('My Popol WebSocket Open.', process.env.WEBSOCKET_PORT);
 });
 
 // 사용자 페이지 api jwt X
