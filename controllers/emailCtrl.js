@@ -54,7 +54,6 @@ const emailCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'sendMail error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('sendMail error : ', err);
     } finally {

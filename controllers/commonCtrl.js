@@ -46,10 +46,7 @@ const commonCtrl = {
         logger.info(`유저가 로그인하였습니다. : ${users[0].userId}`);
       };
       const handleFalse = () => {
-        res.status(204).json({
-          message: '일치하는 유저 정보가 없습니다.',
-          timestamp: new Date(),
-        });
+        res.status(204).send();
       };
       if (users.length === 1) {
         if (snsAuthToken) {
@@ -64,9 +61,8 @@ const commonCtrl = {
       }
     } catch (err) {
       logger.error('signIn 에러 : ', err);
-      res.status(500).json({
+      res.status(500).send({
         message: '로그인 에러',
-        timestamp: new Date(),
       });
     } finally {
       connection.release();
@@ -119,9 +115,8 @@ const commonCtrl = {
       }
     } catch (err) {
       logger.error('signCodePub 에러 : ', err);
-      res.status(500).json({
+      res.status(500).send({
         message: 'signCodePub 에러',
-        timestamp: new Date(),
       });
     } finally {
       connection.release();
@@ -138,7 +133,6 @@ const commonCtrl = {
       logger.error('getUser 에러 : ', err);
       res.status(500).send({
         message: 'getUser 에러',
-        timestamp: new Date(),
       });
     } finally {
       connection.release();
@@ -200,7 +194,6 @@ const commonCtrl = {
       logger.error('postSignupUser 에러 : ', err);
       res.status(500).send({
         message: 'postSignupUser 에러',
-        timestamp: new Date(),
       });
     } finally {
       sftp.end();
@@ -210,7 +203,7 @@ const commonCtrl = {
   putUserPassword: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { password } = req.body;
+      const { password, oldPassword } = req.body;
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(password, salt);
       req.body.hashPassword = hash;
@@ -221,7 +214,6 @@ const commonCtrl = {
       logger.error('putUserPassword 에러 : ', err);
       res.status(500).send({
         message: 'putUserPassword 에러',
-        timestamp: new Date(),
       });
     } finally {
       sftp.end();

@@ -66,8 +66,10 @@ const handleJwtCheck = (req, res, next) => {
       res.status(401).send();
     }
   } catch (err) {
-    logger.error('handleJwtCheck 서버 에러 : ', err);
-    res.status(500).send();
+    logger.error('JWT 인증 에러 : ', err);
+    res.status(400).json({
+      message: 'JWT 인증 에러'
+    });
   }
 };
 

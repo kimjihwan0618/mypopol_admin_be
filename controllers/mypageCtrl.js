@@ -55,7 +55,6 @@ const mypageCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'postProfileImg error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('postProfileImg error :', err);
     } finally {
@@ -80,7 +79,6 @@ const mypageCtrl = {
       logger.error('postProfileImg 에러 : ', err);
       res.status(500).send({
         message: 'postProfileImg 에러',
-        timestamp: new Date(),
       });
     } finally {
       connection.release();

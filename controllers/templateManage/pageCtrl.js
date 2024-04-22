@@ -28,7 +28,6 @@ const pageCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'getPageTemList error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('getPageTemList error :', err);
     } finally {
@@ -55,7 +54,6 @@ const pageCtrl = {
       await connection.rollback();
       res.status(500).json({
         message: 'deleteWork error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('deleteWork error :', err);
     } finally {
@@ -131,7 +129,6 @@ const pageCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'updatePageTem error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('updatePageTem error :', err);
     } finally {
@@ -202,7 +199,6 @@ const pageCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'addOrUpdateWork error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('addOrUpdateWork error :', err);
     } finally {

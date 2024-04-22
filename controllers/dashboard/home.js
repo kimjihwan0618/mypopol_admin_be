@@ -21,7 +21,6 @@ const homeCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'getPopols error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('getPageTemList error :', err);
     } finally {
@@ -38,7 +37,6 @@ const homeCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'getWorks error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('getPageTemList error :', err);
     } finally {
@@ -55,7 +53,6 @@ const homeCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'getVistors error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('getVistors error :', err);
     } finally {
@@ -72,7 +69,6 @@ const homeCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'getMails error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('getMails error :', err);
     } finally {
@@ -101,7 +97,6 @@ const homeCtrl = {
     }
     res.status(200).json({
       message: '웹소켓 메세지 보낸뒤 실행 성공',
-      timestamp: new Date(),
     });
     connection.release();
   }

@@ -25,6 +25,7 @@ const authCtrl = {
       decodedToken.username = users[0].userName;
       decodedToken.profileImg = users[0].profileImg;
       const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
+      console.log(refreshToken);
       res.cookie('token', refreshToken, { httpOnly: true });
       res.status(200).send({
         ...{
@@ -38,7 +39,6 @@ const authCtrl = {
       logger.error('accessToken 에러 : ', err);
       res.status(500).json({
         message: 'accessToken 에러',
-        timestamp: new Date(),
       });
     } finally {
       connection.release();
@@ -55,15 +55,13 @@ const authCtrl = {
           response: rows[0],
         });
       } else {
-        res.status(401).json({
+        res.status(200).json({
           message: '일치하는 권한이 없습니다.',
-          timestamp: new Date(),
         });
       }
     } catch (err) {
       res.status(500).json({
         message: 'getMenus error : 내부 서버 오류가 발생했습니다.',
-        timestamp: new Date(),
       });
       logger.error('getMenus error :', err);
     } finally {

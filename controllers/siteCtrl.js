@@ -45,7 +45,6 @@ const siteCtrl = {
     } catch (err) {
       res.status(500).json({
         message: 'postPopolInfo 에러',
-        timestamp: new Date(),
       });
       logger.error('postPopolInfo 에러 :', err);
     } finally {
