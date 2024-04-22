@@ -6,6 +6,8 @@ const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/common'));
 const Client = require('ssh2-sftp-client');
 const sftp = new Client();
+const NodeCache = require('node-cache');
+const cache = new NodeCache();
 const bcrypt = require('bcrypt');
 const sftpConfig = require(path.join(root, 'config/sftp.config'));
 const nodemailer = require('nodemailer');
@@ -72,6 +74,7 @@ const commonCtrl = {
     const connection = await dbPool.getConnection();
     try {
       const { forgotPw, userEmail } = req.body; // 비밀번호 찾기로 호출시 forgotPw = true
+      const action = forgotPw ? '비밀번호 찾기' : '계정 생성';
       const [users, error] = await connection.query(
         query.getUser(queryParse.singleQuiteParse(req.body))
       );
@@ -90,7 +93,7 @@ const commonCtrl = {
         const mailOptions = {
           from: emailAuth.user,
           to: authValue, // authValue 휴대폰 인증번호 발급 추가구현 필요
-          subject: `[마이포폴]${forgotPw ? '비밀번호 찾기' : '계정 생성'} 인증코드 발급`,
+          subject: `[마이포폴]${action} 인증코드 발급`,
           html: `
           <p>안녕하세요 마이포폴입니다.</p>
           <br />
@@ -100,18 +103,18 @@ const commonCtrl = {
           <p style="font-weight: bold;">인증코드 : ${authKey}</p>
           `,
         };
-        const info = await transporter.sendMail(mailOptions);
-        logger.info(`회원가입을 위한 본인 인증번호를 발급하였습니다. ${userEmail}`);
+        await transporter.sendMail(mailOptions);
+        cache.set(authValue, authKey, 120);
+        logger.info(`${action}을 위한 본인 인증번호를 발급하였습니다. ${userEmail}`);
         res.status(200).send({
-          authKey,
           ...(forgotPw && { authValue: users[0].authValue }),
           ...(forgotPw && { authType: users[0].authType }),
         });
       };
       if (users.length > 0) {
-        forgotPw ? handleAuthCodeIssuance() : res.status(200).send(false);
+        forgotPw ? handleAuthCodeIssuance() : res.status(401).send({ message: "이미 존재하는 유저 정보" });
       } else {
-        forgotPw ? res.status(200).send(false) : handleAuthCodeIssuance();
+        forgotPw ? res.status(401).send({ message: "유효하지 않은 유저" }) : handleAuthCodeIssuance();
       }
     } catch (err) {
       logger.error('signCodePub 에러 : ', err);
@@ -120,6 +123,22 @@ const commonCtrl = {
       });
     } finally {
       connection.release();
+    }
+  },
+  checkAuthCode: async (req, res) => {
+    try {
+      const { authValue, authCode } = req.query;
+      if (cache.get(authValue) === authCode) {
+        cache.ttl(authValue, 300);
+        res.status(200).send(cache.get(authValue));
+      } else {
+        res.status(401).send({ message: "유효하지 않은 인증번호" });
+      };
+    } catch (err) {
+      logger.error('checkAuthCode 에러 : ', err);
+      res.status(500).send({
+        message: 'checkAuthCode 에러',
+      });
     }
   },
   getUser: async (req, res) => {
@@ -203,12 +222,16 @@ const commonCtrl = {
   putUserPassword: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { password, oldPassword } = req.body;
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(password, salt);
-      req.body.hashPassword = hash;
-      await connection.query(query.updateUserPassword(req.body));
-      res.status(200).send(true);
+      const { password, authValue, authCode } = req.body;
+      if (Number(cache.get(authValue)) === Number(authCode)) {
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+        req.body.hashPassword = hash;
+        await connection.query(query.updateUserPassword(req.body));
+        res.status(200).send(true);
+      } else {
+        res.status(401).send({ message: "유효하지 않은 인증정보" });
+      }
     } catch (err) {
       await connection.rollback();
       logger.error('putUserPassword 에러 : ', err);
