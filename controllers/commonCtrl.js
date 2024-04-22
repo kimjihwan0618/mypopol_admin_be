@@ -112,9 +112,13 @@ const commonCtrl = {
         });
       };
       if (users.length > 0) {
-        forgotPw ? handleAuthCodeIssuance() : res.status(401).send({ message: "이미 존재하는 유저 정보" });
+        forgotPw
+          ? handleAuthCodeIssuance()
+          : res.status(401).send({ message: '이미 존재하는 유저 정보' });
       } else {
-        forgotPw ? res.status(401).send({ message: "유효하지 않은 유저" }) : handleAuthCodeIssuance();
+        forgotPw
+          ? res.status(401).send({ message: '유효하지 않은 유저' })
+          : handleAuthCodeIssuance();
       }
     } catch (err) {
       logger.error('signCodePub 에러 : ', err);
@@ -132,8 +136,8 @@ const commonCtrl = {
         cache.ttl(authValue, 300);
         res.status(200).send(cache.get(authValue));
       } else {
-        res.status(401).send({ message: "유효하지 않은 인증번호" });
-      };
+        res.status(401).send({ message: '유효하지 않은 인증번호' });
+      }
     } catch (err) {
       logger.error('checkAuthCode 에러 : ', err);
       res.status(500).send({
@@ -230,7 +234,7 @@ const commonCtrl = {
         await connection.query(query.updateUserPassword(req.body));
         res.status(200).send(true);
       } else {
-        res.status(401).send({ message: "유효하지 않은 인증정보" });
+        res.status(401).send(false);
       }
     } catch (err) {
       await connection.rollback();
