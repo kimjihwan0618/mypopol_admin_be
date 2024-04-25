@@ -20,7 +20,7 @@ const commonCtrl = {
   postSignIn: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { password, snsAuthToken } = req.body;
+      const { password, snsAuthToken, userEmail } = req.body;
       const [users, error] = await connection.query(
         query.getUser(queryParse.singleQuiteParse(req.body))
       );
@@ -48,6 +48,7 @@ const commonCtrl = {
       };
       const handleFalse = () => {
         res.status(204).send();
+        nodeCache.set(userEmail, snsAuthToken, 300);
       };
       if (users.length === 1) {
         if (snsAuthToken) {
@@ -113,10 +114,10 @@ const commonCtrl = {
       if (users.length > 0) {
         forgotPw
           ? handleAuthCodeIssuance()
-          : res.status(401).send({ message: '이미 존재하는 유저 정보' });
+          : res.status(409).send({ message: '이미 존재하는 유저 정보' });
       } else {
         forgotPw
-          ? res.status(401).send({ message: '유효하지 않은 유저' })
+          ? res.status(404).send({ message: '유효하지 않은 유저' })
           : handleAuthCodeIssuance();
       }
     } catch (err) {
@@ -131,12 +132,12 @@ const commonCtrl = {
   checkAuthCode: async (req, res) => {
     try {
       const { authValue, authCode } = req.query;
-      if (nodeCache.get(authValue) === authCode) {
-        nodeCache.ttl(authValue, 300);
-        res.status(200).send(nodeCache.get(authValue));
-      } else {
-        res.status(401).send({ message: '유효하지 않은 인증번호' });
+      if (String(nodeCache.get(authValue)) !== String(authCode)) {
+        res.status(400).send({ message: '유효하지 않은 인증번호' });
+        return;
       }
+      nodeCache.ttl(authValue, 300);
+      res.status(200).send(nodeCache.get(authValue));
     } catch (err) {
       logger.error('checkAuthCode 에러 : ', err);
       res.status(500).send({
@@ -163,7 +164,13 @@ const commonCtrl = {
   postUser: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { templateId, userId, userName, userKey, password, authType, authValue } = req.body;
+      const { templateId, userId, userName, userKey, password, authType, authValue, authCode } = req.body;
+      if (String(nodeCache.get(authValue)) !== String(authCode)) {
+        res.status(400).send({
+          message: '유효하지 않은 접근입니다.',
+        });
+        return;
+      }
       const salt = await bcrypt.genSalt(10);
       const hash = await bcrypt.hash(password, salt);
       req.body.hashPassword = hash;
@@ -226,15 +233,15 @@ const commonCtrl = {
     const connection = await dbPool.getConnection();
     try {
       const { password, authValue, authCode } = req.body;
-      if (Number(nodeCache.get(authValue)) === Number(authCode)) {
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-        req.body.hashPassword = hash;
-        await connection.query(query.updateUserPassword(req.body));
-        res.status(200).send(true);
-      } else {
-        res.status(401).send(false);
+      if (String(nodeCache.get(authValue)) !== String(authCode)) {
+        res.status(400).send(false);
+        return;
       }
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(password, salt);
+      req.body.hashPassword = hash;
+      await connection.query(query.updateUserPassword(req.body));
+      res.status(200).send(true);
     } catch (err) {
       await connection.rollback();
       logger.error('putUserPassword 에러 : ', err);

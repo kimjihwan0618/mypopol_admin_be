@@ -1,12 +1,5 @@
 /**
  * @swagger
- * tags:
- *   name: Admin Public
- *   description: 로그인 전 관리자 유저에게 접근이 허용된 API
- */
-
-/**
- * @swagger
  * /common/auth-code:
  *   post:
  *     summary: 본인 인증번호 발급
@@ -42,12 +35,17 @@
  *                 properties:
  *                   authValue:
  *                     type: string
- *                     description : "비밀번호 변경시 본인 인증 수단 조회"
+ *                     description : "비밀번호 찾기 단계시 본인 인증 수단 조회"
  *                   authType:
  *                     type: string
- *                     description : "비밀번호 변경시 본인 인증 수단 조회"
- *       401:
- *         description: 유효하지 않은 인증정보.
+ *                     description : "비밀번호 찾기 단계시 본인 인증 수단 조회"
+ *                   userEmail:
+ *                     type: string
+ *                     description : "유저 생성 단계시 본인인증 이메일"
+ *       404:
+ *         description: 유효하지 않은 유저
+ *       409:
+ *         description: 이미 존재하는 유저
  *       500:
  *         description: 서버 에러
  */
