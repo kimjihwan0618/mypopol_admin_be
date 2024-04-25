@@ -14,7 +14,8 @@ const multer = require('multer');
 const log4js = require('log4js');
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
-const clientSessions = require('./clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
+const nodeCache = require('./cache/nodeCache');
+const clientSessions = require('./ws/clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
 const sslCertPath = path.join(__dirname, 'auth', 'cert.pem');
 const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem');
 const sslCert = fs.readFileSync(sslCertPath);
@@ -59,7 +60,7 @@ app.use(upload);
 const handleJwtCheck = (req, res, next) => {
   const authToken = req.headers?.authorization;
   try {
-    if (authToken) {
+    if (authToken && !nodeCache.get(authToken.slice(-20))) {
       jwt.verify(authToken, 'my_secret_key');
       next();
     } else {

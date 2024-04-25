@@ -7,7 +7,7 @@ const query2 = require(path.join(root, 'query/site'));
 const logger = log4js.getLogger('access');
 const WebSocket = require('ws');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
-const clientSessions = require(path.join(root, 'clientSessions')); // 클라이언트와 세션 ID를 매핑할 맵
+const clientSessions = require(path.join(root, 'ws/clientSessions')); // 클라이언트와 세션 ID를 매핑할 맵
 log4js.configure(log4jsConfig);
 
 const homeCtrl = {

@@ -6,8 +6,7 @@ const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/common'));
 const Client = require('ssh2-sftp-client');
 const sftp = new Client();
-const NodeCache = require('node-cache');
-const cache = new NodeCache();
+const nodeCache = require('../cache/nodeCache');
 const bcrypt = require('bcrypt');
 const sftpConfig = require(path.join(root, 'config/sftp.config'));
 const nodemailer = require('nodemailer');
@@ -104,7 +103,7 @@ const commonCtrl = {
           `,
         };
         await transporter.sendMail(mailOptions);
-        cache.set(authValue, authKey, 120);
+        nodeCache.set(authValue, authKey, 120);
         logger.info(`${action}을 위한 본인 인증번호를 발급하였습니다. ${userEmail}`);
         res.status(200).send({
           ...(forgotPw && { authValue: users[0].authValue }),
@@ -132,9 +131,9 @@ const commonCtrl = {
   checkAuthCode: async (req, res) => {
     try {
       const { authValue, authCode } = req.query;
-      if (cache.get(authValue) === authCode) {
-        cache.ttl(authValue, 300);
-        res.status(200).send(cache.get(authValue));
+      if (nodeCache.get(authValue) === authCode) {
+        nodeCache.ttl(authValue, 300);
+        res.status(200).send(nodeCache.get(authValue));
       } else {
         res.status(401).send({ message: '유효하지 않은 인증번호' });
       }
@@ -197,7 +196,7 @@ const commonCtrl = {
         profileImg: ``,
         userId: `${userId}`,
         username: `${userName}`,
-        roleId: `2`, // 회원가입시 기본 유저 생성
+        roleId: `2`,
         role: `FREE`,
         authType: `${authType}`,
         authValue: `${authValue}`,
@@ -227,7 +226,7 @@ const commonCtrl = {
     const connection = await dbPool.getConnection();
     try {
       const { password, authValue, authCode } = req.body;
-      if (Number(cache.get(authValue)) === Number(authCode)) {
+      if (Number(nodeCache.get(authValue)) === Number(authCode)) {
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
         req.body.hashPassword = hash;

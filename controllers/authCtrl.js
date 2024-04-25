@@ -6,6 +6,7 @@ const dbPool = require(path.join(root, 'config/db.config'));
 const query = require(path.join(root, 'query/auth'));
 const jwt = require('jsonwebtoken');
 const logger = log4js.getLogger('access');
+const nodeCache = require('../cache/nodeCache');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
 const query2 = require(path.join(root, 'query/common'));
 const queryParse = require(path.join(root, 'utills/queryParse'));
@@ -25,8 +26,7 @@ const authCtrl = {
       decodedToken.username = users[0].userName;
       decodedToken.profileImg = users[0].profileImg;
       const refreshToken = jwt.sign(decodedToken, 'my_secret_key', { expiresIn: '60m' }); // 개발 중에만 jwt 유효기간 늘려놓음
-      console.log(refreshToken);
-      res.cookie('token', refreshToken, { httpOnly: true });
+      nodeCache.set(req.headers.authorization.slice(-20), "jwt_black_list", 3600);
       res.status(200).send({
         ...{
           accessToken: refreshToken,
@@ -36,9 +36,9 @@ const authCtrl = {
       });
       logger.info(`jwt 토큰을 재발급하였습니다 : ${refreshToken}`);
     } catch (err) {
-      logger.error('accessToken 에러 : ', err);
+      logger.error('refreshJwt 에러 : ', err);
       res.status(500).json({
-        message: 'accessToken 에러',
+        message: 'refreshJwt 에러',
       });
     } finally {
       connection.release();
@@ -68,6 +68,21 @@ const authCtrl = {
       connection.release();
     }
   },
+  logout: async (req, res) => {
+    try {
+      const params = req.query;
+      const { userId } = params;
+      const jwt = req.headers.authorization;
+      nodeCache.set(jwt.slice(-20), "jwt_black_list", 3600);
+      res.status(200).send(true);
+      logger.info(`${userId} 유저가 로그아웃 하였습니다.`);
+    } catch (err) {
+      res.status(500).json({
+        message: 'logout error : 내부 서버 오류가 발생했습니다.',
+      });
+      logger.error('logout error :', err);
+    }
+  }
 };
 
 module.exports = authCtrl;
