@@ -151,7 +151,9 @@ const commonCtrl = {
       const [users, error] = await connection.query(
         query.getUser(queryParse.singleQuiteParse(req.query))
       );
-      res.send(users.length > 0 ? false : true);
+      users.length > 0 ?
+        res.status(409).send({ message: '이미 사용중인 유저 ID' }) :
+        res.status(200).send({ message: '사용가능한 유저 ID' });
     } catch (err) {
       logger.error('getUser 에러 : ', err);
       res.status(500).send({
