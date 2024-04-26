@@ -48,7 +48,7 @@ const commonCtrl = {
       };
       const handleFalse = () => {
         res.status(204).send();
-        nodeCache.set(userEmail, snsAuthToken, 300);
+        snsAuthToken && nodeCache.set(userEmail, snsAuthToken, 300);
       };
       if (users.length === 1) {
         if (snsAuthToken) {

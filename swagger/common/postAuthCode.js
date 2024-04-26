@@ -3,7 +3,7 @@
  * /common/auth-code:
  *   post:
  *     summary: 본인 인증번호 발급
- *     tags : [Admin Public]
+ *     tags : [Admin_Public]
  *     requestBody:
  *       description:
  *           유저 생성 or 비밀번호 변경시 필요한 인증번호 발급 (유효기간 2분)

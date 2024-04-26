@@ -3,7 +3,7 @@
  * /common/user:
  *   post:
  *     summary: 유저 생성
- *     tags : [Admin Public]
+ *     tags : [Admin_Public]
  *     requestBody:
  *       description:
  *           어드민 페이지를 통해 사이트를 관리할 수 있는 관리자 계정, 포폴사이트 생성

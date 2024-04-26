@@ -3,22 +3,17 @@
  * /common/user:
  *   get:
  *     summary: 유저 조회
- *     tags : [Admin Public]
- *     requestBody:
- *       description:
- *           유저 생성 단계에서 유저 ID 유효한지 체크
+ *     tags: [Admin_Public]
+ *     parameters:
+ *     - in: query
+ *       name: userId
  *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               userId:
- *                 type: string
- *                 description: "유저 ID"
+ *       description: 중복체크할 유저 ID
+ *       schema:
+ *         type: string
  *     responses:
  *       200:
- *         description: 유저생성, 사이트 생성 성공
+ *         description: 유저 ID 사용 가능 여부 정상 확인
  *         content:
  *           application/json:
  *             schema:

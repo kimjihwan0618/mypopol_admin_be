@@ -3,22 +3,20 @@
  * /common/auth-code:
  *   get:
  *     summary: 인증번호 체크
- *     tags : [Admin Public]
- *     requestBody:
- *       description:
- *           유저 생성 or 비밀번호 변경시 발급한 인증번호 체크 (유효기간 2분)
+ *     tags : [Admin_Public]
+ *     parameters:
+ *     - in: query
+ *       name: authCode
  *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               authCode:
- *                 type: string
- *                 description: "인증번호"
- *               authValue:
- *                 type: string
- *                 description: "이메일 or 휴대전화번호"
+ *       description: 인증번호
+ *       schema:
+ *         type: string
+ *     - in: query
+ *       name: authValue
+ *       required: true
+ *       description: 이메일 or 휴대전화번호
+ *       schema:
+ *         type: string"
  *     responses:
  *       200:
  *         description: 인증번호 체크 성공

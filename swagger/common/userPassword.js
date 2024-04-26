@@ -3,7 +3,7 @@
  * /common/user/password:
  *   post:
  *     summary: 유저 비밀번호 변경
- *     tags : [Admin Public]
+ *     tags : [Admin_Public]
  *     requestBody:
  *       description:
  *         비밀번호 찾기 ->

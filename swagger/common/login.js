@@ -3,7 +3,7 @@
 * /common/login:
 *   post:
 *     summary: 유저 로그인
-*     tags : [Admin Public]
+*     tags : [Admin_Public]
 *     requestBody:
 *       description: 로그인에 필요한 정보
 *       required: true
