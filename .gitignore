@@ -6,6 +6,6 @@ logs/
 
 config/
 
-auth/
+https/
 
 .env.*
