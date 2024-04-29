@@ -2,7 +2,7 @@
  * @swagger
 * /auth/sidebar/menu:
 *   get:
-*     summary: 사이드 메뉴바 데이터 가져옴
+*     summary: 사이드 메뉴바 데이터 조회
 *     tags : [Admin_Initialization]
 *     parameters:
 *       - in: query

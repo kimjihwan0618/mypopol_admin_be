@@ -86,45 +86,36 @@ const pageCtrl = {
       );
       const oldProfileExists = directoryList.some((file) => file.name === `${reqJson.profileOld}`);
 
+      // 썸네일 이미지 처리
       if (thumbnailImgPath) {
         if (oldThumbnailExists) {
-          if (reqJson.thumbnailOld !== decodeURIComponent(thumbnailImg.originalname)) {
+          const thumbnailNeedsUpdate = reqJson.thumbnailOld !== decodeURIComponent(thumbnailImg.originalname);
+          if (thumbnailNeedsUpdate) {
             await sftp.delete(oldThumbnailPath);
-            await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
           }
-        } else {
-          await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
         }
-      } else {
-        if (oldThumbnailExists) {
-          await sftp.delete(oldThumbnailPath);
-        }
+        await sftp.put(thumbnailImg.buffer, thumbnailImgPath);
+      } else if (oldThumbnailExists) {
+        await sftp.delete(oldThumbnailPath);
       }
 
+      // 프로필 이미지 처리
       if (profileImgPath) {
         if (oldProfileExists) {
-          if (reqJson.profileOld !== decodeURIComponent(profileImg.originalname)) {
+          const profileNeedsUpdate = reqJson.profileOld !== decodeURIComponent(profileImg.originalname);
+          if (profileNeedsUpdate) {
             await sftp.delete(oldProfilePath);
-            await sftp.put(profileImg.buffer, profileImgPath);
           }
-        } else {
-          await sftp.put(profileImg.buffer, profileImgPath);
         }
-      } else {
-        if (oldProfileExists) {
-          await sftp.delete(oldProfilePath);
-        }
+        await sftp.put(profileImg.buffer, profileImgPath);
+      } else if (oldProfileExists) {
+        await sftp.delete(oldProfilePath);
       }
       await connection.query(query.updatePageTem(queryParse.singleQuiteParse(reqJson)));
       for (let i = 0; i < reqJson.workList.length; i++) {
         await connection.query(query.updateWorkOrder2(reqJson.workList[i], i));
       }
-      res.status(200).send({
-        response: {
-          // profileImg,
-          // thumbnailImg,
-        },
-      });
+      res.status(200).send(true);
       logger.info(`updatePageTem : ${reqJson.userId}, ${reqJson.ptId}`);
     } catch (err) {
       res.status(500).json({

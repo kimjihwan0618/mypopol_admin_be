@@ -49,9 +49,7 @@ const mypageCtrl = {
           userId: userId,
         })
       );
-      res.status(200).send({
-        response: 'success',
-      });
+      res.status(200).send(true);
     } catch (err) {
       res.status(500).json({
         message: 'postProfileImg error : 내부 서버 오류가 발생했습니다.',

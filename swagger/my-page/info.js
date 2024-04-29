@@ -1,14 +1,13 @@
 /**
  * @swagger
- * /common/user/password:
+ * /my-page/profile/info:
  *   put:
- *     summary: 유저 비밀번호 변경
- *     tags : [Admin_Public]
+ *     summary: 유저 정보(유저명, 비밀번호) 변경
+ *     tags : 
+ *       - Admin_Profile
  *     requestBody:
  *       description:
- *         비밀번호 찾기 ->
- *         본인인증 ->
- *         유저 비밀번호 변경
+ *         관리자 유저 계정 유저명, 비밀번호 변경
  *       required: true
  *       content:
  *         application/json:
@@ -21,22 +20,21 @@
  *               password:
  *                 type: string
  *                 description: "변경할 유저 패스워드"
- *               authValue:
+ *               username:
  *                 type: string
- *                 description: "인증 수단 값 (폰번호 or 이메일)"
- *               authCode:
- *                 type: string
- *                 description: "본인 인증 번호"
+ *                 description: "변경할 계정의 유저명"
  *     responses:
  *       200:
- *         description: 비밀번호 변경 성공
+ *         description: 유저 정보 변경 성공
  *         content:
  *           application/json:
  *             schema:
  *                 type: boolean
- *                 description: "성공 true 실패 false"
+ *                 description: "성공 true"
  *       400:
- *         description: 유효하지 않은 인증정보.
+ *         description: 유효하지 않은 JWT
+ *       401:
+ *         description: JWT 만료
  *       500:
  *         description: 서버 에러
  */

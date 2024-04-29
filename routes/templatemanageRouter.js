@@ -2,7 +2,7 @@ const pageTemManageCtrl = require('../controllers/templateManage/pageCtrl');
 const router = require('express').Router();
 
 // page
-router.route('/pages').get(pageTemManageCtrl.getPageTemList);
+// router.route('/pages').get(pageTemManageCtrl.getPageTemList);
 router.route('/page').put(pageTemManageCtrl.updatePageTem);
 
 // work

@@ -6,7 +6,7 @@
 *     tags : [Admin_Initialization]
 *     responses:
 *       200:
-*         description: JWT 재발급 하고 유저정보를 다시가져옴. Authorize 재세팅 필요.
+*         description: JWT 재발급 하고 유저정보를 재조회. Authorize 재세팅 필요.
 *         content:
 *           application/json:
 *             schema:
