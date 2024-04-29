@@ -35,7 +35,7 @@
  *             schema:
  *                 type: boolean
  *                 description: "성공 true 실패 false"
- *       401:
+ *       400:
  *         description: 유효하지 않은 인증정보.
  *       500:
  *         description: 서버 에러

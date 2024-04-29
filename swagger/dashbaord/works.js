@@ -2,7 +2,7 @@
  * @swagger
  * /dashboard/works:
  *   get:
- *     summary: 유저에 대한 전체 프로젝트 조회
+ *     summary: 관리자 유저에 대한 전체 프로젝트 조회
  *     tags : [Admin_Dashboard]
  *     parameters:
  *     - in: query
@@ -13,7 +13,7 @@
  *         type: string
  *     responses:
  *       200:
- *         description: 유저에 대한 전체 프로젝트 조회 성공
+ *         description: 조회 성공
  *         content:
  *           application/json:
  *             schema:
@@ -57,8 +57,10 @@
  *                     workSeq:
  *                       type: integer
  *                       description : "프로젝트 레코드 키값"
- *       400:
- *         description: JWT 인증 에러
+*       400:
+*         description: 유효하지않은 JWT
+*       401:
+*         description: JWT 만료
  *       500:
  *         description: 서버 에러
  */
