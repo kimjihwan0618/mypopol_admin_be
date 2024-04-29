@@ -9,12 +9,12 @@ const http = require('http');
 const https = require('https');
 const WebSocket = require('ws');
 const dotenv = require('dotenv');
-const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const log4js = require('log4js');
 const logger = log4js.getLogger('access');
 const log4jsConfig = path.join(root, 'config/log4js.config.json');
-const nodeCache = require('./cache/nodeCache');
+const validateJwt = require('./middlewares/validateJwt');
+const corsHost = path.join(root, 'config/corsHost.json');
 const clientSessions = require('./ws/clientSessions'); // 클라이언트와 세션 ID를 매핑할 맵
 const sslCertPath = path.join(__dirname, 'auth', 'cert.pem');
 const sslKeyPath = path.join(__dirname, 'auth', 'privkey.pem');
@@ -27,21 +27,6 @@ const env = process.env.NODE_ENV;
 const envFile = `.env.${env}`;
 log4js.configure(log4jsConfig);
 dotenv.config({ path: envFile });
-// cors 허용 호스트
-const corsOptions = {
-  origin: [
-    'http://caribo.me',
-    'https://caribo.me',
-    'http://admin.mypopol.com',
-    'https://admin.mypopol.com',
-    'http://site.mypopol.com',
-    'https://site.mypopol.com',
-    'https://kimjihwan0618.github.io',
-    'https://kimjihodo.synology.me',
-    'http://localhost:3001',
-    'http://127.0.0.1:5500',
-  ],
-};
 // SSL/TLS 인증서 및 개인 키 파일 경로
 const options = {
   key: sslKey,
@@ -53,26 +38,9 @@ const upload = multer().any();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors(corsOptions));
+app.use(cors(corsHost));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(upload);
-
-const handleJwtCheck = (req, res, next) => {
-  const authToken = req.headers?.authorization;
-  try {
-    if (authToken && !nodeCache.get(authToken.slice(-20))) {
-      jwt.verify(authToken, 'my_secret_key');
-      next();
-    } else {
-      res.status(401).send();
-    }
-  } catch (err) {
-    logger.error('JWT 인증 에러 : ', err);
-    res.status(400).json({
-      message: 'JWT 인증 에러'
-    });
-  }
-};
 
 wss.on('connection', (ws, req) => {
   const url = new URL(req.url, env === "development" ? `ws://${req.headers.host}` : `wss://${req.headers.host}`);
@@ -104,7 +72,7 @@ app.use('/site', require('./routes/siteRouter'));
 app.use('/common', require('./routes/commonRouter'));
 
 // 관리자 페이지 api jwt O
-app.use('/auth', handleJwtCheck, require('./routes/authRouter'));
-app.use('/templateManage', handleJwtCheck, require('./routes/templatemanageRouter'));
-app.use('/dashboard', handleJwtCheck, require('./routes/dashboardRouter'));
-app.use('/my-page', handleJwtCheck, require('./routes/mypageRouter'));
+app.use('/auth', validateJwt, require('./routes/authRouter'));
+app.use('/templateManage', validateJwt, require('./routes/templatemanageRouter'));
+app.use('/dashboard', validateJwt, require('./routes/dashboardRouter'));
+app.use('/my-page', validateJwt, require('./routes/mypageRouter'));

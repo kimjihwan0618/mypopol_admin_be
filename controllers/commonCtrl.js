@@ -251,7 +251,6 @@ const commonCtrl = {
         message: 'putUserPassword 에러',
       });
     } finally {
-      sftp.end();
       connection.release();
     }
   },
