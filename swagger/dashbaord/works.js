@@ -2,7 +2,7 @@
  * @swagger
  * /dashboard/works:
  *   get:
- *     summary: 프로젝트 조회
+ *     summary: 유저에 대한 전체 프로젝트 조회
  *     tags : [Admin_Dashboard]
  *     parameters:
  *     - in: query
@@ -13,7 +13,7 @@
  *         type: string
  *     responses:
  *       200:
- *         description: 프로젝트 조회 성공
+ *         description: 유저에 대한 전체 프로젝트 조회 성공
  *         content:
  *           application/json:
  *             schema:

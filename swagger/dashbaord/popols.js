@@ -2,7 +2,7 @@
  * @swagger
  * /dashboard/popols:
  *   get:
- *     summary: 포폴리스트 조회
+ *     summary: 유저에 대한 전체 포폴 조회
  *     tags : [Admin_Dashboard]
  *     parameters:
  *     - in: query
@@ -13,7 +13,7 @@
  *         type: string
  *     responses:
  *       200:
- *         description: 포폴 데이터 조회 성공
+ *         description: 유저에 대한 전체 포폴 조회 성공
  *         content:
  *           application/json:
  *             schema:
