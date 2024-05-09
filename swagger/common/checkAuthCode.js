@@ -16,7 +16,7 @@
  *       required: true
  *       description: 이메일 or 휴대전화번호
  *       schema:
- *         type: string"
+ *         type: string
  *     responses:
  *       200:
  *         description: 인증번호 체크 성공
