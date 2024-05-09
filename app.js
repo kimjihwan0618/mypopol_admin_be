@@ -30,11 +30,7 @@ const options = {
   key: sslKey, // SSL/TLS 인증서 및 개인 키 파일 경로
   cert: sslCert,
 };
-console.log("-------------")
-console.log(process.env.NODE_ENV)
-console.log(process.env.API_PORT)
-console.log(process.env.WEBSOCKET_PORT)
-console.log("-------------")
+
 const server = process.env.NODE_ENV === "development" ? http.createServer(app) : https.createServer(options, app);
 const wss = new WebSocket.Server({ server });
 const upload = multer().any();
