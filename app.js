@@ -32,6 +32,9 @@ const options = {
   key: sslKey,
   cert: sslCert,
 };
+console.log("-------------")
+console.log(env)
+console.log("-------------")
 const server = env === "development" ? http.createServer(app) : https.createServer(options, app);
 const wss = new WebSocket.Server({ server });
 const upload = multer().any();
