@@ -23,19 +23,19 @@ const sslKey = fs.readFileSync(sslKeyPath);
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const specs = swaggerJsdoc(require("./config/swagger.config.json"));
-const env = process.env.NODE_ENV;
-const envFile = `.env.${env}`;
+const envFile = `.env.${process.env.NODE_ENV}`;
 log4js.configure(log4jsConfig);
 dotenv.config({ path: envFile });
-// SSL/TLS 인증서 및 개인 키 파일 경로
 const options = {
-  key: sslKey,
+  key: sslKey, // SSL/TLS 인증서 및 개인 키 파일 경로
   cert: sslCert,
 };
 console.log("-------------")
-console.log(env)
+console.log(process.env.NODE_ENV)
+console.log(process.env.API_PORT)
+console.log(process.env.WEBSOCKET_PORT)
 console.log("-------------")
-const server = env === "development" ? http.createServer(app) : https.createServer(options, app);
+const server = process.env.NODE_ENV === "development" ? http.createServer(app) : https.createServer(options, app);
 const wss = new WebSocket.Server({ server });
 const upload = multer().any();
 app.use(bodyParser.json());
@@ -46,7 +46,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(upload);
 
 wss.on('connection', (ws, req) => {
-  const url = new URL(req.url, env === "development" ? `ws://${req.headers.host}` : `wss://${req.headers.host}`);
+  const url = new URL(req.url, process.env.NODE_ENV === "development" ? `ws://${req.headers.host}` : `wss://${req.headers.host}`);
   const userId = url.searchParams.get('userId');
   logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
