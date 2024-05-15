@@ -4,8 +4,10 @@ node_modules/
 
 logs/
 
-config/
+config/db.config.js
+config/mail.config.js
+config/sftp.config.js
 
 https/
 
-.env.*
+.env.production

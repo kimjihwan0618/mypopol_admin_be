@@ -40,16 +40,17 @@ const common = {
   postPopol: (params) => {
     return `
       INSERT INTO popols 
-      (popolName, fakeName, userKey, ptId, phone, email, title, icon, mainColor, renewalDate, lastUpdated, usedDay, status)
+      (popolName, fakeName, userKey, ptId, phone, email, title, sns, icon, mainColor, renewalDate, lastUpdated, usedDay, status)
       VALUES ('${params.popolName}', 
-      '작가명', 
+      '${params.fakeName}', 
       '${params.userKey}', 
       '${params.templateId}', 
       '${params.phone}',
       '${params.email}',
       '${params.title}',
+      '${params.sns}',
       'default',
-      'rgb(255, 182, 59)',
+      '${params.defaultColor}',
       CURRENT_TIMESTAMP,
       CURRENT_TIMESTAMP,
       0,
@@ -63,7 +64,7 @@ const common = {
       WHERE 1=1
       AND userId = '${params.userId}'
     `;
-  }
-}
+  },
+};
 
 module.exports = common;

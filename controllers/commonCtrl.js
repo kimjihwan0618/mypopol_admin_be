@@ -151,9 +151,9 @@ const commonCtrl = {
       const [users, error] = await connection.query(
         query.getUser(queryParse.singleQuiteParse(req.query))
       );
-      users.length > 0 ?
-        res.status(409).send({ message: '이미 사용중인 유저 ID' }) :
-        res.status(200).send({ message: '사용가능한 유저 ID' });
+      users.length > 0
+        ? res.status(409).send({ message: '이미 사용중인 유저 ID' })
+        : res.status(200).send({ message: '사용가능한 유저 ID' });
     } catch (err) {
       logger.error('getUser 에러 : ', err);
       res.status(500).send({
@@ -166,7 +166,8 @@ const commonCtrl = {
   postUser: async (req, res) => {
     const connection = await dbPool.getConnection();
     try {
-      const { templateId, userId, userName, userKey, password, authType, authValue, authCode } = req.body;
+      const { templateId, userId, userName, userKey, password, authType, authValue, authCode } =
+        req.body;
       if (String(nodeCache.get(authValue)) !== String(authCode)) {
         res.status(400).send({
           message: '유효하지 않은 접근입니다.',
