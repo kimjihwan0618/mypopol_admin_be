@@ -195,6 +195,13 @@ const commonCtrl = {
             const userInput = copy.toString().split('\n');
             userInput[0] = `const userId = '${userId}';`;
             await sftp.put(Buffer.from(userInput.join('\n')), destinationPath);
+          } else if (path.extname(file.name) === '.html') {
+            let html = copy.toString();
+            html = html.replace(
+              new RegExp(`<meta\\s+property\\s*=\\s*"og:url"\\s+content\\s*=\\s*"[^"]*?"\\s*\\/>`),
+              `<meta property="og:url" content="https://site.mypopol.com/${templateId}/${userId}" \/>`
+            );
+            await sftp.put(Buffer.from(html), destinationPath);
           } else {
             await sftp.put(copy, destinationPath);
           }

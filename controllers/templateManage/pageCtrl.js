@@ -85,11 +85,11 @@ const pageCtrl = {
         (file) => file.name === `${reqJson.thumbnailOld}`
       );
       const oldProfileExists = directoryList.some((file) => file.name === `${reqJson.profileOld}`);
-
       // 썸네일 이미지 처리
       if (thumbnailImgPath) {
         if (oldThumbnailExists) {
-          const thumbnailNeedsUpdate = reqJson.thumbnailOld !== decodeURIComponent(thumbnailImg.originalname);
+          const thumbnailNeedsUpdate =
+            reqJson.thumbnailOld !== decodeURIComponent(thumbnailImg.originalname);
           if (thumbnailNeedsUpdate) {
             await sftp.delete(oldThumbnailPath);
           }
@@ -98,11 +98,12 @@ const pageCtrl = {
       } else if (oldThumbnailExists) {
         await sftp.delete(oldThumbnailPath);
       }
-
+      // 썸네일 이미지 처리
       // 프로필 이미지 처리
       if (profileImgPath) {
         if (oldProfileExists) {
-          const profileNeedsUpdate = reqJson.profileOld !== decodeURIComponent(profileImg.originalname);
+          const profileNeedsUpdate =
+            reqJson.profileOld !== decodeURIComponent(profileImg.originalname);
           if (profileNeedsUpdate) {
             await sftp.delete(oldProfilePath);
           }
@@ -111,6 +112,43 @@ const pageCtrl = {
       } else if (oldProfileExists) {
         await sftp.delete(oldProfilePath);
       }
+      // 프로필 이미지 처리
+      // html 메타태그 수정
+      let dataBuffer = await sftp.get(`/web/site/${reqJson.ptId}/${reqJson.userId}/index.html`);
+      let data = dataBuffer.toString();
+      data = data.replace(
+        new RegExp(`<meta\\s+name\\s*=\\s*"author"\\s+content=".*?"\\s*\\/>`),
+        `<meta name="author" content="${reqJson?.fakeName}" \/>`
+      );
+      data = data.replace(
+        new RegExp(`<meta\\s+name\\s*=\\s*"description"\\s+content=".*?"\\s*\\/>`),
+        `<meta name="description" content="${reqJson?.popolName}" \/>`
+      );
+      data = data.replace(
+        new RegExp(`<meta\\s+property\\s*=\\s*"og:image"\\s+content\\s*=\\s*"[^"]*?"\\s*\\/>`),
+        `<meta property="og:image" content="./img/${reqJson?.thumbnail}" \/>`
+      );
+      data = data.replace(
+        new RegExp(`<meta\\s+property\\s*=\\s*"og:title"\\s+content\\s*=\\s*"[^"]*?"\\s*\\/>`),
+        `<meta property="og:title" content="${reqJson?.title.replace('\n', ' ')}" \/>`
+      );
+      data = data.replace(
+        new RegExp(
+          `<meta\\s+property\\s*=\\s*"og:description"\\s+content\\s*=\\s*"[^"]*?"\\s*\\/>`
+        ),
+        `<meta property="og:description" content="${reqJson?.popolName}" \/>`
+      );
+      data = data.replace(
+        new RegExp(`<meta\\s+property\\s*=\\s*"og:site_name"\\s+content\\s*=\\s*"[^"]*?"\\s*\\/>`),
+        `<meta property="site_name" content="${reqJson?.popolName}" \/>`
+      );
+      console.log(reqJson?.popolName);
+      data = data.replace(
+        new RegExp(`<title>.*?<\/title>`),
+        `<title>${reqJson?.popolName}</title>`
+      );
+      await sftp.put(Buffer.from(data), `/web/site/${reqJson.ptId}/${reqJson.userId}/index.html`);
+      // html 메타태그 수정
       await connection.query(query.updatePageTem(queryParse.singleQuiteParse(reqJson)));
       for (let i = 0; i < reqJson.workList.length; i++) {
         await connection.query(query.updateWorkOrder2(reqJson.workList[i], i));
