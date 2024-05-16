@@ -21,7 +21,7 @@
  *     - in: query
  *       name: ptId
  *       required: true
- *       description: 포폴 사이트 타입 ID
+ *       description: 포폴 사이트 타입 ID (ptid01 or ptid02)
  *     - in: query
  *       name: userId
  *       required: true

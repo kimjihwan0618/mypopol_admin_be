@@ -29,7 +29,7 @@
  *                       description : "사이트 관리자 ID"
  *                     ptId:
  *                       type: string
- *                       description : "사이트 타입 ID"
+ *                       description : "사이트 타입 ID (ptid01 or ptid02)"
  *                     email:
  *                       type: string
  *                       description : "발신자 이메일"

@@ -33,13 +33,29 @@
  *                 description: "인증번호"
  *               templateId:
  *                 type: string
- *                 description: "포폴 템플릿 ID (ptid01)"
+ *                 description: "포폴 템플릿 ID (ptid01, ptid02)"
  *               popolName:
  *                 type: string
  *                 description: "포폴명"
  *               title:
  *                 type: string
  *                 description: "사이트 상단 인삿말"
+ *               sns:
+ *                 anyOf:
+ *                   - type: string
+ *                   - type: object
+ *                     properties:
+ *                       ptid01:
+ *                         type : object
+ *                       ptid02:
+ *                         type : string
+ *                 description: 사이트 부수 정보 ptid01 = null, ptid02 = {"job":"OOO Developer","aboutMe":"안녕하세요\\n 개발자 OOO입니다.","skills":{},"sns":{}}
+ *               fakeName:
+ *                 type: string
+ *                 description: "사이트에 기재될 이름"
+ *               defaultColor:
+ *                 type: string
+ *                 description: "사이트 메인 컬리 도메인='rgb(255, 182, 59)','rgb(75, 135, 224)','rgb(75, 224, 149)','rgb(55,65,81)'"
  *               userKey:
  *                 type: string
  *                 description: "yyyyMMddHHmmSS (유저 레코드키)"

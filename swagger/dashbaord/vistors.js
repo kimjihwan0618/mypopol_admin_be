@@ -32,7 +32,7 @@
  *                       description : "포폴 레코드 키값"
  *                     ptId:
  *                       type: integer
- *                       description : "사이트 타입 ID"
+ *                       description : "사이트 타입 ID (ptid01 or ptid02)"
  *                     timeStamp:
  *                       type: integer
  *                       description : "방문 일시"
