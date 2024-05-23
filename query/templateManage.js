@@ -66,7 +66,7 @@ const query = {
       param;
     return `
       INSERT INTO works (popolSeq, workId, ${'`order`'}, title, subTitle, poster, logo, summary, etc, src)
-      VALUES (${popolSeq}, ${workId}, ${order}, '${title}', '${subTitle}', '${poster}', '${logo}', '${summary}', '${siteList}', '${src}');
+      VALUES (${popolSeq}, ${workId}, ${order}, '${title}', '${subTitle}', '${poster}', '${logo}', '${summary}', '${etc}', '${src}');
     `;
   },
   seletWorkOrder: (param) => {
@@ -90,7 +90,7 @@ const query = {
       poster = '${param.poster}',
       logo = '${param.logo}',
       summary = '${param.summary}',
-      etc = '${param.siteList}'
+      etc = '${param.etc}'
       WHERE 1=1
       AND popolSeq = ${param.popolSeq}
       AND workSeq = ${param.workSeq}
