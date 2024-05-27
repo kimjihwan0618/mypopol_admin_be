@@ -178,6 +178,7 @@ const pageCtrl = {
         reqJson.src = String(reqJson.workId) + '_' + String(new Date().getTime());
         await sftp.mkdir(sourceDir + reqJson.src, true);
         titleImg && (await sftp.put(titleImg.buffer, sourceDir + reqJson.src + '/' + reqJson.logo));
+        posterImg && (await sftp.put(posterImg.buffer, sourceDir + reqJson.src + '/' + reqJson.poster));
         await sftp.put(posterImg.buffer, sourceDir + reqJson.src + '/' + reqJson.poster);
         sftp.end();
         const connection = await dbPool.getConnection();
@@ -191,12 +192,25 @@ const pageCtrl = {
           response: reqJson,
         });
       } else if (reqJson.state === '수정') {
-        if (reqJson.posterImgOld !== decodeURIComponent(posterImg.originalname)) {
-          await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.posterImgOld}`);
-          await sftp.put(
-            posterImg.buffer,
-            sourceDir + reqJson.src + '/' + decodeURIComponent(posterImg.originalname)
-          );
+        if (!posterImg) {
+          if (reqJson.posterImgOld !== 'none') {
+            await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.posterImgOld}`);
+          }
+        } else {
+          if (reqJson.posterImgOld !== 'none') {
+            if (reqJson.posterImgOld !== decodeURIComponent(posterImg.originalname)) {
+              await sftp.delete(`${sourceDir}${reqJson.src}/${reqJson.posterImgOld}`);
+              await sftp.put(
+                posterImg.buffer,
+                sourceDir + reqJson.src + '/' + decodeURIComponent(posterImg.originalname)
+              );
+            }
+          } else {
+            await sftp.put(
+              posterImg.buffer,
+              sourceDir + reqJson.src + '/' + decodeURIComponent(posterImg.originalname)
+            );
+          }
         }
         if (!titleImg) {
           if (reqJson.titleImgOld !== 'none') {

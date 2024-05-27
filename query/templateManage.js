@@ -62,7 +62,7 @@ const query = {
     `;
   },
   addWork: (param) => {
-    const { popolSeq, workId, order, title, subTitle, poster, logo, summary, siteList, src } =
+    const { popolSeq, workId, order, title, subTitle, poster, logo, summary, etc, src } =
       param;
     return `
       INSERT INTO works (popolSeq, workId, ${'`order`'}, title, subTitle, poster, logo, summary, etc, src)
