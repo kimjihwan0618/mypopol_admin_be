@@ -178,8 +178,8 @@ const pageCtrl = {
         reqJson.src = String(reqJson.workId) + '_' + String(new Date().getTime());
         await sftp.mkdir(sourceDir + reqJson.src, true);
         titleImg && (await sftp.put(titleImg.buffer, sourceDir + reqJson.src + '/' + reqJson.logo));
-        posterImg && (await sftp.put(posterImg.buffer, sourceDir + reqJson.src + '/' + reqJson.poster));
-        await sftp.put(posterImg.buffer, sourceDir + reqJson.src + '/' + reqJson.poster);
+        posterImg &&
+          (await sftp.put(posterImg.buffer, sourceDir + reqJson.src + '/' + reqJson.poster));
         sftp.end();
         const connection = await dbPool.getConnection();
         const [rows, error] = await connection.query(query.seletWorkOrder(reqJson));
