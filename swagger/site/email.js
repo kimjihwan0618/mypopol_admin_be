@@ -21,9 +21,6 @@
  *               ptid:
  *                 type: string
  *                 description: 사이트 템플릿 ID (ptid01, ptid02)
- *               ptid:
- *                 type: string
- *                 description: 사이트 템플릿 ID (ptid01, ptid02)
  *               from:
  *                 type: string
  *                 description: 발신자 이메일
