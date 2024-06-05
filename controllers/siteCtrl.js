@@ -13,6 +13,8 @@ log4js.configure(log4jsConfig);
 const siteCtrl = {
   getPopolInfo: async (req, res) => {
     const connection = await dbPool.getConnection();
+    logger.info(`pool._allConnections._tail : ${dbPool.pool._allConnections._tail}`)
+    logger.info(`pool._allConnections._head : ${dbPool.pool._allConnections._head}`)
     try {
       req.body.userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
       if (req.body.countFlag) {
