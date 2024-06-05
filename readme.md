@@ -2,8 +2,9 @@
 
 ### 개요
 
-이 저장소는 Mypopol의 백엔드 서버를 관리하고 있습니다. 아래는 이 저장소의 중요한 정보와 사용 기술에 대한 내용입니다.
+이 저장소는 Mypopol 서비스의 백엔드 서버 코드 저장소입니다. 
 
+- **Mypopol 사이트 주소**: [https://admin.mypopol.com](https://admin.mypopol.com)
 - **Swagger-UI 주소**: [https://kimjihodo.synology.me:3001/api-docs](https://kimjihodo.synology.me:3001/api-docs)
 
 ### 사용 기술
