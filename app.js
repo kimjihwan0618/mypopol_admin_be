@@ -32,8 +32,7 @@ const options = {
 };
 
 const server = process.env.NODE_ENV === "development" ? http.createServer(app) : https.createServer(options, app);
-const httpServer = http.createServer(app);
-const wss = new WebSocket.Server({ httpServer });
+const wss = new WebSocket.Server({ server });
 const upload = multer().any();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -43,8 +42,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 app.use(upload);
 
 wss.on('connection', (ws, req) => {
-  // const url = new URL(req.url, process.env.NODE_ENV === "development" ? `ws://${req.headers.host}` : `wss://${req.headers.host}`);
-  const url = new URL(req.url, `ws://${req.headers.host}`);
+  const url = new URL(req.url, process.env.NODE_ENV === "development" ? `ws://${req.headers.host}` : `wss://${req.headers.host}`);
   const userId = url.searchParams.get('userId');
   logger.info(`웹소켓 connection : ${userId}`);
   clientSessions.set(userId, ws); // 세션 ID와 웹소켓 인스턴스를 매핑하여 저장
